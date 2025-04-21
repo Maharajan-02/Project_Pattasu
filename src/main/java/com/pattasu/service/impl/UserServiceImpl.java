@@ -1,6 +1,7 @@
-package com.pattasu.serviceImpl;
+package com.pattasu.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Random;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import com.pattasu.dto.OtpVerificationRequest;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.exception.OtpExpiredException;
 import com.pattasu.exception.OtpMismatchException;
+import com.pattasu.exception.UserNotFoundException;
 import com.pattasu.model.PendingUser;
 import com.pattasu.model.User;
 import com.pattasu.repository.PendingUserRepository;
@@ -23,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final PendingUserRepository pendingUserRepository;
+    private final Random random = new Random();
     
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, MailService mailService
     		, PendingUserRepository pendingUserRepository) {
@@ -61,7 +64,9 @@ public class UserServiceImpl implements UserService {
     		    .orElse(new PendingUser());
 
         // Generate OTP
-        String otp = String.format("%06d", (int)(Math.random() * 1000000));
+    	
+    	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
+    	String otp = String.format("%06d", otpValue);
 
         // Store in DB
         pending.setName(request.getName());
@@ -69,7 +74,7 @@ public class UserServiceImpl implements UserService {
         pending.setPhoneNumber(request.getPhoneNumber());
         pending.setPassword(request.getPassword()); // Will be encrypted after OTP verification
         pending.setOtp(otp);
-        pending.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
         pendingUserRepository.save(pending);
 
@@ -84,7 +89,7 @@ public class UserServiceImpl implements UserService {
     public String verifyOtpAndRegister(OtpVerificationRequest request) {
 
         PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("No registration found for this email."));
+            .orElseThrow(() -> new UserNotFoundException("No registration found for this email."));
 
         if (pending.getOtpExpiry().isBefore(LocalDateTime.now())) {
             throw new OtpExpiredException("OTP expired.");

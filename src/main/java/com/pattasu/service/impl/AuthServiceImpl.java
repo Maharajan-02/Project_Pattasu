@@ -1,4 +1,4 @@
-package com.pattasu.serviceImpl;
+package com.pattasu.service.impl;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import com.pattasu.dto.LoginRequest;
 import com.pattasu.dto.LoginResponse;
 import com.pattasu.exception.InvalidCredentialsException;
-import com.pattasu.exception.OtpMismatchException;
 import com.pattasu.model.User;
 import com.pattasu.repository.UserRepository;
 import com.pattasu.service.AuthService;

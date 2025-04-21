@@ -1,4 +1,4 @@
-package com.pattasu.serviceImpl;
+package com.pattasu.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;

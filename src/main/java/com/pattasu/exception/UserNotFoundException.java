@@ -1,10 +1,11 @@
 package com.pattasu.exception;
 
-public class OtpMismatchException extends RuntimeException {
+public class UserNotFoundException extends RuntimeException {
 	
 	private static final long serialVersionUID = 1L;
 	
-    public OtpMismatchException(String message) {
+    public UserNotFoundException(String message) {
         super(message);
     }
+
 }
