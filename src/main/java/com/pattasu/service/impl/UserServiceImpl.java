@@ -36,23 +36,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String registerUser(UserRegistrationRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return "User already exists with this email.";
-        }
-
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // ✅ encrypted
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setRole("user");
-
-        userRepository.save(user);
-        return "User registered successfully.";
-    }
-    
-    @Override
     @Transactional
     public String initiateRegistration(UserRegistrationRequest request) {
        
