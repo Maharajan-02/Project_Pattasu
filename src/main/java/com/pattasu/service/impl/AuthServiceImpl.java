@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.pattasu.dto.LoginRequest;
 import com.pattasu.dto.LoginResponse;
+import com.pattasu.entity.User;
 import com.pattasu.exception.InvalidCredentialsException;
-import com.pattasu.model.User;
 import com.pattasu.repository.UserRepository;
 import com.pattasu.service.AuthService;
 import com.pattasu.util.JwtUtil;
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
         	throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
         return new LoginResponse(token, user.getRole());
     }
 }

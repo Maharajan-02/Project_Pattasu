@@ -3,17 +3,19 @@ package com.pattasu.service.impl;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pattasu.dto.OtpVerificationRequest;
 import com.pattasu.dto.UserRegistrationRequest;
+import com.pattasu.entity.PendingUser;
+import com.pattasu.entity.User;
 import com.pattasu.exception.OtpExpiredException;
 import com.pattasu.exception.OtpMismatchException;
 import com.pattasu.exception.UserNotFoundException;
-import com.pattasu.model.PendingUser;
-import com.pattasu.model.User;
 import com.pattasu.repository.PendingUserRepository;
 import com.pattasu.repository.UserRepository;
 import com.pattasu.service.UserService;
@@ -97,6 +99,14 @@ public class UserServiceImpl implements UserService {
 
         return "User registered successfully!";
     }
+    
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+
 
 
 }
