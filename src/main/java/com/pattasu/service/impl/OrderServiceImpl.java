@@ -1,9 +1,15 @@
 package com.pattasu.service.impl;
 
 import com.pattasu.entity.*;
+import com.pattasu.exception.EmptyCartException;
+import com.pattasu.exception.InventoryException;
 import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.OrderRepository;
+import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.OrderService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,18 +21,21 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
     }
 
     @Override
+    @Transactional
     public Order placeOrder(User user) {
         List<Cart> cartItems = cartRepository.findByUser(user);
 
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new EmptyCartException("Cart is empty");
         }
 
         Order order = new Order();
@@ -41,6 +50,16 @@ public class OrderServiceImpl implements OrderService {
             int quantity = cart.getQuantity();
             double price = product.getPrice();
 
+            // Check stock
+            if (product.getQuantity() < quantity) {
+                throw new InventoryException("Insufficient stock for: " + product.getName());
+            }
+
+            // Deduct stock
+            product.setQuantity(product.getQuantity() - quantity);
+            productRepository.save(product);
+
+            // Create order item
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProduct(product);

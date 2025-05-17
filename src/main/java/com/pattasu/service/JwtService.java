@@ -1,19 +1,26 @@
 package com.pattasu.service;
 
+import java.security.Key;
+import java.util.Base64;
+import java.util.Date;
+import java.util.function.Function;
+
+import org.springframework.stereotype.Service;
+
 import com.pattasu.entity.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.stereotype.Service;
-
-import java.util.Date;
-import java.util.function.Function;
+import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "PattasuSecretKey"; // 🔐 Store securely in env for production
-    private static final long EXPIRATION = (long)1000 * 60 * 60 * 24; // 24 hours
+    private static final String BASE64_SECRET = "3Nf43HgNblDqXQ7sy5uEt2YJ3CZ+lQ0BBu+0MyDq4S4=";
+    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(BASE64_SECRET));
+//	private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final long EXPIRATION = 1000 * 60 * 60 * 24; // 24 hours
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -21,11 +28,11 @@ public class JwtService {
 
     public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getUsername()) // username/email
+                .setSubject(user.getUsername())
                 .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -48,8 +55,9 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }

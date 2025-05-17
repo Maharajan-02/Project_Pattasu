@@ -1,8 +1,19 @@
 package com.pattasu.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "orders") // "order" is a reserved word in SQL
@@ -13,6 +24,7 @@ public class Order {
     private Long id;
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 
     private LocalDateTime orderDate;
@@ -20,6 +32,7 @@ public class Order {
     private double totalPrice;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<OrderItem> items;
 
     public Long getId() { return id; }

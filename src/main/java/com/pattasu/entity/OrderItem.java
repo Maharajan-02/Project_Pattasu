@@ -1,5 +1,7 @@
 package com.pattasu.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -10,6 +12,7 @@ public class OrderItem {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference
     private Order order;
 
     @ManyToOne

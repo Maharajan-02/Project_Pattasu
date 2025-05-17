@@ -12,6 +12,8 @@ import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.CartService;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class CartServiceImpl implements CartService {
 
@@ -56,6 +58,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void removeFromCart(Long productId, User user) {
         cartRepository.deleteByUserAndProductId(user, productId);
     }

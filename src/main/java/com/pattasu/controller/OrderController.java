@@ -3,6 +3,9 @@ package com.pattasu.controller;
 import com.pattasu.entity.Order;
 import com.pattasu.entity.User;
 import com.pattasu.service.OrderService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +23,7 @@ public class OrderController {
     }
 
     @PostMapping("/place")
+    @Transactional
     public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal User user) {
         Order order = orderService.placeOrder(user);
         return ResponseEntity.ok(order);

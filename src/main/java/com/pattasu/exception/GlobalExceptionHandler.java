@@ -34,6 +34,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
     
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<String> handleEmptyCart(Exception ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+    
+    @ExceptionHandler(InventoryException.class)
+    public ResponseEntity<String> handleInventoryExceptions(Exception ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong.");
