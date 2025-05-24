@@ -13,9 +13,9 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-//	private static final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-  private static final String SECRET_KEY = "3Nf43HgNblDqXQ7sy5uEt2YJ3CZ+lQ0BBu+0MyDq4S4="; // 🔐 keep this safe in prod
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
+	private static final String SECRET_KEY_STR = "3Nf43HgNblDqXQ7sy5uEt2YJ3CZ+lQ0BBu+0MyDq4S4="; // 🔐 keep this safe in prod
+    private static final long EXPIRATION_TIME = (long)1000 * 60 * 60; // 1 hour
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STR.getBytes());
 
     public String generateToken(String email, String role) {
         return Jwts.builder()
@@ -23,9 +23,8 @@ public class JwtUtil {
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Add validation methods later as needed
 }

@@ -35,18 +35,7 @@ public class CartServiceImpl implements CartService {
 
         cart.setUser(user);
         cart.setProduct(product);
-
-        if (cart.getId() == null) {
-            // new item
-            cart.setQuantity(Math.max(1, request.getQuantity()));
-        } else {
-            int updatedQuantity = cart.getQuantity() + request.getQuantity();
-            if (updatedQuantity <= 0) {
-                cartRepository.delete(cart); // remove item if quantity drops to 0
-                return;
-            }
-            cart.setQuantity(updatedQuantity);
-        }
+        cart.setQuantity(request.getQuantity());
 
         cartRepository.save(cart);
     }

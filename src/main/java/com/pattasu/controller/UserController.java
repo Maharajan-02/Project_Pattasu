@@ -1,5 +1,7 @@
 package com.pattasu.controller;
 
+import com.pattasu.dto.LoginRequest;
+import com.pattasu.dto.LoginResponse;
 import com.pattasu.dto.OtpVerificationRequest;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.service.UserService;
@@ -24,5 +26,10 @@ public class UserController {
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(@RequestBody OtpVerificationRequest request) {
         return ResponseEntity.ok(userService.verifyOtpAndRegister(request));
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(userService.login(request));
     }
 }

@@ -18,20 +18,11 @@ import com.pattasu.entity.User;
 import com.pattasu.service.CartService;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/api/cart")
 public class CartController {
 
     private final CartService cartService;
 	
-	/* private final UserService userService;
-	 * 
-	 * 
-	 * public CartController(CartService cartService, UserService userService) {
-	 * this.car
-	 *tService = cartService; this.userService = userService; 
-	 *}*/
-	 
-
     public CartController(CartService cartService) {
         this.cartService = cartService;
     }

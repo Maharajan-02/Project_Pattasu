@@ -9,16 +9,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pattasu.dto.LoginRequest;
+import com.pattasu.dto.LoginResponse;
 import com.pattasu.dto.OtpVerificationRequest;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.entity.PendingUser;
 import com.pattasu.entity.User;
+import com.pattasu.exception.InvalidCredentialsException;
 import com.pattasu.exception.OtpExpiredException;
 import com.pattasu.exception.OtpMismatchException;
 import com.pattasu.exception.UserNotFoundException;
 import com.pattasu.repository.PendingUserRepository;
 import com.pattasu.repository.UserRepository;
 import com.pattasu.service.UserService;
+import com.pattasu.util.JwtUtil;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -28,13 +32,15 @@ public class UserServiceImpl implements UserService {
     private final MailService mailService;
     private final PendingUserRepository pendingUserRepository;
     private final Random random = new Random();
+    private final JwtUtil jwtUtil;
     
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, MailService mailService
-    		, PendingUserRepository pendingUserRepository) {
+    		, PendingUserRepository pendingUserRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
         this.pendingUserRepository = pendingUserRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -45,19 +51,20 @@ public class UserServiceImpl implements UserService {
             return "User already exists with this email.";
         }
 
+    	String encodedPassword = passwordEncoder.encode(request.getPassword());
+    	
     	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
     		    .orElse(new PendingUser());
 
         // Generate OTP
-    	
     	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
     	String otp = String.format("%06d", otpValue);
-
+    	
         // Store in DB
         pending.setName(request.getName());
         pending.setEmail(request.getEmail());
         pending.setPhoneNumber(request.getPhoneNumber());
-        pending.setPassword(request.getPassword()); // Will be encrypted after OTP verification
+        pending.setPassword(encodedPassword);
         pending.setOtp(otp);
         pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
@@ -84,14 +91,11 @@ public class UserServiceImpl implements UserService {
             throw new OtpMismatchException("Invalid OTP.");
         }
 
-        // ✅ Encrypt the password before saving the final user
-        String encodedPassword = passwordEncoder.encode(pending.getPassword());
-
         User user = new User();
         user.setName(pending.getName());
         user.setEmail(pending.getEmail());
         user.setPhoneNumber(pending.getPhoneNumber());
-        user.setPassword(encodedPassword); // 🔒 secure
+        user.setPassword(pending.getPassword()); // 🔒 secure
         user.setRole("user");
 
         userRepository.save(user);
@@ -106,7 +110,18 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!passwordMatches) {
+        	throw new InvalidCredentialsException("Invalid email or password");
+        }
 
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        return new LoginResponse(token, user.getRole());
+    }
 
 }
