@@ -1,10 +1,13 @@
 package com.pattasu.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.pattasu.dto.AddToCartRequest;
+import com.pattasu.dto.CartDTO;
+import com.pattasu.dto.ProductDTO;
 import com.pattasu.entity.Cart;
 import com.pattasu.entity.Product;
 import com.pattasu.entity.User;
@@ -33,17 +36,38 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUserAndProductId(user, request.getProductId())
                 .orElse(new Cart());
 
-        cart.setUser(user);
-        cart.setProduct(product);
-        cart.setQuantity(request.getQuantity());
-
-        cartRepository.save(cart);
+        if(request.getQuantity() == 0) {
+        	cartRepository.delete(cart);
+        }else {
+	        cart.setUser(user);
+	        cart.setProduct(product);
+	        cart.setQuantity(request.getQuantity());
+	
+	        cartRepository.save(cart);
+        }
     }
 
     
     @Override
-    public List<Cart> getCartItems(User user) {
-        return cartRepository.findByUser(user);
+    public List<CartDTO> getCartItems(User user) {
+        List<Cart> cartList = cartRepository.findByUser(user);
+        List<CartDTO> cartDtoList = new ArrayList<>();
+        for(Cart cart : cartList) {
+        	ProductDTO productDto = new ProductDTO();
+        	CartDTO cartDto = new CartDTO();
+        	cartDto.setId(cart.getId());
+        	productDto.setId(cart.getProduct().getId());
+        	productDto.setName(cart.getProduct().getName());
+        	productDto.setDescription(cart.getProduct().getDescription());
+        	productDto.setPrice(cart.getProduct().getPrice());
+        	productDto.setImageUrl(cart.getProduct().getImageUrl());
+        	cartDto.setProduct(productDto);
+        	cartDto.setQuantity(cart.getQuantity());
+        	
+        	cartDtoList.add(cartDto);
+        }
+        
+        return cartDtoList;
     }
 
     @Override

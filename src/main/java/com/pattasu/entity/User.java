@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class User implements UserDetails {
 
 	private static final long serialVersionUID = 1L;
@@ -27,6 +27,8 @@ public class User implements UserDetails {
     private String password;
 
     private String role;
+    
+    private String address;
 
     // ======= UserDetails interface methods =======
 
@@ -35,7 +37,15 @@ public class User implements UserDetails {
         return Collections.singleton(() -> role);
     }
 
-    @Override
+    public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	@Override
     public String getUsername() {
         return email;
     }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pattasu.dto.AddToCartRequest;
-import com.pattasu.entity.Cart;
+import com.pattasu.dto.CartDTO;
 import com.pattasu.entity.User;
 import com.pattasu.service.CartService;
 
@@ -35,7 +35,7 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Cart>> getUserCart(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<CartDTO>> getUserCart(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(cartService.getCartItems(user));
     }
 

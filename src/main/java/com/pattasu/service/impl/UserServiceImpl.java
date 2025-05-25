@@ -21,8 +21,8 @@ import com.pattasu.exception.OtpMismatchException;
 import com.pattasu.exception.UserNotFoundException;
 import com.pattasu.repository.PendingUserRepository;
 import com.pattasu.repository.UserRepository;
+import com.pattasu.service.JwtService;
 import com.pattasu.service.UserService;
-import com.pattasu.util.JwtUtil;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,15 +32,15 @@ public class UserServiceImpl implements UserService {
     private final MailService mailService;
     private final PendingUserRepository pendingUserRepository;
     private final Random random = new Random();
-    private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
     
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, MailService mailService
-    		, PendingUserRepository pendingUserRepository, JwtUtil jwtUtil) {
+    		, PendingUserRepository pendingUserRepository, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
         this.pendingUserRepository = pendingUserRepository;
-        this.jwtUtil = jwtUtil;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -120,7 +120,7 @@ public class UserServiceImpl implements UserService {
         	throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        String token = jwtService.generateToken(user);
         return new LoginResponse(token, user.getRole());
     }
 
