@@ -1,20 +1,28 @@
 package com.pattasu.service.impl;
 
-import com.pattasu.entity.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.pattasu.dto.GetOrderListDTO;
+import com.pattasu.dto.OrderItemDTO;
+import com.pattasu.entity.Cart;
+import com.pattasu.entity.Order;
+import com.pattasu.entity.OrderItem;
+import com.pattasu.entity.Product;
+import com.pattasu.entity.User;
 import com.pattasu.exception.EmptyCartException;
 import com.pattasu.exception.InventoryException;
+import com.pattasu.exception.OrderStatus;
 import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.OrderRepository;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.OrderService;
 
 import jakarta.transaction.Transactional;
-
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -31,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order placeOrder(User user) {
+    public Order placeOrder(String address,  User user) {
         List<Cart> cartItems = cartRepository.findByUser(user);
 
         if (cartItems.isEmpty()) {
@@ -41,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
+        order.setAddress(address);
 
         List<OrderItem> orderItems = new ArrayList<>();
         double total = 0.0;
@@ -51,12 +60,12 @@ public class OrderServiceImpl implements OrderService {
             double price = product.getPrice();
 
             // Check stock
-            if (product.getQuantity() < quantity) {
+            if (product.getStockQuantity() < quantity) {
                 throw new InventoryException("Insufficient stock for: " + product.getName());
             }
 
             // Deduct stock
-            product.setQuantity(product.getQuantity() - quantity);
+            product.setStockQuantity(product.getStockQuantity() - quantity);
             productRepository.save(product);
 
             // Create order item
@@ -72,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setItems(orderItems);
         order.setTotalPrice(total);
+        order.setOrderStatus(OrderStatus.PLACED);
 
         // Save the order and cascade items
         Order savedOrder = orderRepository.save(order);
@@ -83,7 +93,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getUserOrders(User user) {
-        return orderRepository.findByUser(user);
+    public List<GetOrderListDTO> getUserOrders(User user) {
+        List<Order> orderList = orderRepository.findByUser(user);
+        
+        List<GetOrderListDTO> orderListDto = new ArrayList<>();
+        for(Order order : orderList) {
+        	GetOrderListDTO orderDto = new GetOrderListDTO();
+        	orderDto.setAddress(order.getAddress());
+        	orderDto.setOrderDate(order.getOrderDate());
+        	orderDto.setStatus(order.getOrderStatus());
+        	List<OrderItemDTO> orderItemList = order.getItems().stream()
+        		    .map(OrderItemDTO::new)  // uses the conversion constructor
+        		    .collect(Collectors.toList());
+        	orderDto.setOrderItemDto(orderItemList);
+        	orderDto.setNumberOfItems(orderItemList.size());
+        	
+        	orderListDto.add(orderDto);
+        }
+        
+        return orderListDto;
     }
 }

@@ -14,7 +14,7 @@ public class Product {
     private String description;
     private double price;
     private String imageUrl;
-    private int quantity;
+    private int stockQuantity;
 
     public Long getId() {
         return id;
@@ -52,11 +52,12 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-    public int getQuantity() {
-        return quantity;
-    }
+	public int getStockQuantity() {
+		return stockQuantity;
+	}
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+	public void setStockQuantity(int stockQuantity) {
+		this.stockQuantity = stockQuantity;
+	}
+    
 }

@@ -21,9 +21,9 @@ public class OrderItem {
     private int quantity;
 
     private double price; 
-
-    public Long getId() { return id; }
-
+    
+	public Long getId() { return id; }    
+	
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
 

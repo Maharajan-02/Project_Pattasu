@@ -1,17 +1,29 @@
 package com.pattasu.dto;
 
-public class ProductDTO {
+import com.pattasu.entity.Product;
 
-	private Long id;
+public class ProductDTO {
+	
+	public ProductDTO() {}
+
+	public ProductDTO(Product product) {
+		this.productId = product.getId();
+		this.name = product.getName();
+		this.description = product.getDescription();
+		this.price = product.getPrice();
+		this.imageUrl = product.getImageUrl();
+	}
+	private Long productId;
     private String name;
     private String description;
     private double price;
     private String imageUrl;
-	public Long getId() {
-		return id;
+    
+	public Long getProductId() {
+		return productId;
 	}
-	public void setId(Long id) {
-		this.id = id;
+	public void setProductId(Long productId) {
+		this.productId = productId;
 	}
 	public String getName() {
 		return name;
@@ -37,5 +49,4 @@ public class ProductDTO {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
-    
 }

@@ -1,16 +1,20 @@
 package com.pattasu.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.pattasu.dto.GetOrderListDTO;
 import com.pattasu.entity.Order;
 import com.pattasu.entity.User;
 import com.pattasu.service.OrderService;
 
 import jakarta.transaction.Transactional;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/order")
@@ -24,14 +28,14 @@ public class OrderController {
 
     @PostMapping("/place")
     @Transactional
-    public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal User user) {
-        Order order = orderService.placeOrder(user);
+    public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal User user, String address) {
+        Order order = orderService.placeOrder(address, user);
         return ResponseEntity.ok(order);
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getUserOrders(@AuthenticationPrincipal User user) {
-        List<Order> orders = orderService.getUserOrders(user);
+    public ResponseEntity<List<GetOrderListDTO>> getUserOrders(@AuthenticationPrincipal User user) {
+        List<GetOrderListDTO> orders = orderService.getUserOrders(user);
         return ResponseEntity.ok(orders);
     }
 }
