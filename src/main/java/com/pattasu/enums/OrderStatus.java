@@ -1,4 +1,4 @@
-package com.pattasu.exception;
+package com.pattasu.enums;
 
 public enum OrderStatus {
 

@@ -3,7 +3,7 @@ package com.pattasu.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.pattasu.exception.OrderStatus;
+import com.pattasu.enums.OrderStatus;
 
 public class GetOrderListDTO {
 
