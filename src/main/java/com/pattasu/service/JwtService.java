@@ -19,7 +19,7 @@ public class JwtService {
 
     private static final String BASE64_SECRET = "3Nf43HgNblDqXQ7sy5uEt2YJ3CZ+lQ0BBu+0MyDq4S4=";
     private static final Key SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(BASE64_SECRET));
-    private static final long EXPIRATION = (long)1000 * 60 * 60 * 24; // 24 hours
+    private static final long EXPIRATION = 24L * 60 * 60 * 1000; // 24 hours
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
