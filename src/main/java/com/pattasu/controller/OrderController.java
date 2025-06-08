@@ -14,6 +14,7 @@ import com.pattasu.entity.Order;
 import com.pattasu.entity.User;
 import com.pattasu.service.OrderService;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.transaction.Transactional;
 
 @RestController
@@ -28,7 +29,7 @@ public class OrderController {
 
     @PostMapping("/place")
     @Transactional
-    public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal User user, String address) {
+    public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal User user, @RequestBody String address) {
         Order order = orderService.placeOrder(address, user);
         return ResponseEntity.ok(order);
     }
