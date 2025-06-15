@@ -3,6 +3,10 @@ package com.pattasu.service.impl;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +30,8 @@ import com.pattasu.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
+	
+	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -45,11 +51,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public String initiateRegistration(UserRegistrationRequest request) {
+    public ResponseEntity<String> initiateRegistration(UserRegistrationRequest request) {
        
     	try {
     		if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-                return "User already exists with this email.";
+    			return ResponseEntity
+    				    .status(HttpStatus.BAD_REQUEST)
+    				    .body("User already exists");
             }
 
         	String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -74,15 +82,20 @@ public class UserServiceImpl implements UserService {
             // Send OTP to user's email
             mailService.sendOtpEmail(request.getEmail(), otp);
 
-            return "OTP sent to your email. Please verify to complete registration.";
+            return ResponseEntity
+            		.status(HttpStatus.OK)
+            		.body("OTP sent to your email. Please verify to complete registration.");
     	}catch(Exception e) {
-    		return e.getMessage();
+    		log.info("error during inititate registration {} ", e.getMessage());
+    		return ResponseEntity
+            		.status(HttpStatus.BAD_REQUEST)
+            		.body(e.getMessage());
     	}
     }
 
     @Override
     @Transactional
-    public String verifyOtpAndRegister(OtpVerificationRequest request) {
+    public ResponseEntity<String> verifyOtpAndRegister(OtpVerificationRequest request) {
 
         try {
         	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
@@ -106,9 +119,15 @@ public class UserServiceImpl implements UserService {
                 userRepository.save(user);
                 pendingUserRepository.deleteByEmail(request.getEmail());
 
-                return "User registered successfully!";
+                return ResponseEntity
+                		.status(HttpStatus.OK)
+                		.body("User registered successfully!");
 		} catch (Exception e) {
-			return e.getMessage();
+			
+			log.info("error while otp verification {} ", e.getMessage());
+			return ResponseEntity
+            		.status(HttpStatus.BAD_REQUEST)
+            		.body(e.getMessage());
 		}
     }
     
@@ -119,7 +138,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
@@ -129,7 +148,9 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtService.generateToken(user);
-        return new LoginResponse(token, user.getRole());
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(new LoginResponse(token, user.getRole()));
     }
 
 }

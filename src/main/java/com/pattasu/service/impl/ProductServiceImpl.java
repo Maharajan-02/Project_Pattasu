@@ -22,6 +22,8 @@ import com.pattasu.service.ProductService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+	
+	private static final String UPLOAD = "uploads/";
 
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
@@ -34,9 +36,8 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = { "products", "product" }, allEntries = true)
     public ResponseEntity<Product> addProduct(Product product, MultipartFile file) {
     	try {
-    		String uploadDir = "uploads/";
     		String fileName = System.currentTimeMillis() + "_" +file.getOriginalFilename();
-    		Path path = Paths.get(uploadDir + fileName);
+    		Path path = Paths.get(UPLOAD + fileName);
     		Files.createDirectories(path.getParent());
     		Files.write(path, file.getBytes());
     		log.info("Path to store image is - {}",path.getParent());

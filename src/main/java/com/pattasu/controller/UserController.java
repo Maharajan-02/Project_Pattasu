@@ -23,17 +23,17 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserRegistrationRequest request) {
-        return ResponseEntity.ok(userService.initiateRegistration(request));
+        return userService.initiateRegistration(request);
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(@RequestBody OtpVerificationRequest request) {
-        return ResponseEntity.ok(userService.verifyOtpAndRegister(request));
+        return userService.verifyOtpAndRegister(request);
     }
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(userService.login(request));
+        return userService.login(request);
     }
     
     @GetMapping("/user")
