@@ -54,7 +54,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://5721-27-5-61-181.ngrok-free.app", "http://localhost:4200") // Replace with your frontend's origin
+                        .allowedOrigins("*") // Replace with your frontend's origin
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
