@@ -44,13 +44,13 @@ public class ProductController {
     @PreAuthorize("hasAuthority('admin')")
     @PostMapping
     public ResponseEntity<Product> addProduct(@RequestBody Product product, @RequestParam("image") MultipartFile file) {
-        return ResponseEntity.ok(productService.addProduct(product, file));
+        return productService.addProduct(product, file);
     }
 
     @PreAuthorize("hasAuthority('admin')")
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updatedProduct) {
-        return ResponseEntity.ok(productService.updateProduct(id, updatedProduct));
+        return productService.updateProduct(id, updatedProduct);
     }
 
     @PreAuthorize("hasAuthority('admin')")
