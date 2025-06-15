@@ -47,61 +47,69 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public String initiateRegistration(UserRegistrationRequest request) {
        
-    	if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return "User already exists with this email.";
-        }
+    	try {
+    		if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                return "User already exists with this email.";
+            }
 
-    	String encodedPassword = passwordEncoder.encode(request.getPassword());
-    	
-    	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-    		    .orElse(new PendingUser());
+        	String encodedPassword = passwordEncoder.encode(request.getPassword());
+        	
+        	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
+        		    .orElse(new PendingUser());
 
-        // Generate OTP
-    	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
-    	String otp = String.format("%06d", otpValue);
-    	
-        // Store in DB
-        pending.setName(request.getName());
-        pending.setEmail(request.getEmail());
-        pending.setPhoneNumber(request.getPhoneNumber());
-        pending.setPassword(encodedPassword);
-        pending.setOtp(otp);
-        pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+            // Generate OTP
+        	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
+        	String otp = String.format("%06d", otpValue);
+        	
+            // Store in DB
+            pending.setName(request.getName());
+            pending.setEmail(request.getEmail());
+            pending.setPhoneNumber(request.getPhoneNumber());
+            pending.setPassword(encodedPassword);
+            pending.setOtp(otp);
+            pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
-        pendingUserRepository.save(pending);
+            pendingUserRepository.save(pending);
 
-        // Send OTP to user's email
-        mailService.sendOtpEmail(request.getEmail(), otp);
+            // Send OTP to user's email
+            mailService.sendOtpEmail(request.getEmail(), otp);
 
-        return "OTP sent to your email. Please verify to complete registration.";
+            return "OTP sent to your email. Please verify to complete registration.";
+    	}catch(Exception e) {
+    		return e.getMessage();
+    	}
     }
 
     @Override
     @Transactional
     public String verifyOtpAndRegister(OtpVerificationRequest request) {
 
-        PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new UserNotFoundException("No registration found for this email."));
+        try {
+        	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UserNotFoundException("No registration found for this email."));
 
-        if (pending.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            throw new OtpExpiredException("OTP expired.");
-        }
+                if (pending.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                    throw new OtpExpiredException("OTP expired.");
+                }
 
-        if (!pending.getOtp().equals(request.getOtp())) {
-            throw new OtpMismatchException("Invalid OTP.");
-        }
+                if (!pending.getOtp().equals(request.getOtp())) {
+                    throw new OtpMismatchException("Invalid OTP.");
+                }
 
-        User user = new User();
-        user.setName(pending.getName());
-        user.setEmail(pending.getEmail());
-        user.setPhoneNumber(pending.getPhoneNumber());
-        user.setPassword(pending.getPassword()); // 🔒 secure
-        user.setRole("user");
+                User user = new User();
+                user.setName(pending.getName());
+                user.setEmail(pending.getEmail());
+                user.setPhoneNumber(pending.getPhoneNumber());
+                user.setPassword(pending.getPassword()); // 🔒 secure
+                user.setRole("user");
 
-        userRepository.save(user);
-        pendingUserRepository.deleteByEmail(request.getEmail());
+                userRepository.save(user);
+                pendingUserRepository.deleteByEmail(request.getEmail());
 
-        return "User registered successfully!";
+                return "User registered successfully!";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
     }
     
     @Override
