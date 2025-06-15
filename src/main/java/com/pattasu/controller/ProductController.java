@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.pattasu.entity.Product;
 import com.pattasu.service.ProductService;
@@ -42,8 +43,8 @@ public class ProductController {
     // 🔐 Admin only
     @PreAuthorize("hasAuthority('admin')")
     @PostMapping
-    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
-        return ResponseEntity.ok(productService.addProduct(product));
+    public ResponseEntity<Product> addProduct(@RequestBody Product product, @RequestParam("image") MultipartFile file) {
+        return ResponseEntity.ok(productService.addProduct(product, file));
     }
 
     @PreAuthorize("hasAuthority('admin')")

@@ -1,20 +1,27 @@
 package com.pattasu.service.impl;
 
-import com.pattasu.entity.Product;
-import com.pattasu.repository.ProductRepository;
-import com.pattasu.service.ProductService;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.NoSuchElementException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.NoSuchElementException;
+import com.pattasu.entity.Product;
+import com.pattasu.repository.ProductRepository;
+import com.pattasu.service.ProductService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
+	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
 
     public ProductServiceImpl(ProductRepository productRepository) {
@@ -23,8 +30,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
-    public Product addProduct(Product product) {
-        return productRepository.save(product);
+    public Product addProduct(Product product, MultipartFile file) {
+    	try {
+    		String uploadDir = "uploads/";
+    		String fileName = System.currentTimeMillis() + "_" +file.getOriginalFilename();
+    		Path path = Paths.get(uploadDir + fileName);
+    		Files.createDirectories(path.getParent());
+    		Files.write(path, file.getBytes());
+    		log.info("Path to store image is - {}",path.getParent());
+    		product.setImageUrl(path.getParent().toString());
+    		return productRepository.save(product);
+    	}catch(Exception e) {
+    		log.info("Error while adding Product {}", e.getMessage());
+    		return new Product();
+    	}
     }
 
     @Override

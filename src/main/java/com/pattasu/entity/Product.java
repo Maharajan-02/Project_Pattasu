@@ -1,11 +1,14 @@
 package com.pattasu.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "product")
+@JsonSerialize
 public class Product {
-
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
