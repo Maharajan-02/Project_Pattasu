@@ -3,6 +3,10 @@ package com.pattasu.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.pattasu.dto.AddToCartRequest;
@@ -22,6 +26,7 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private static final Logger log = LoggerFactory.getLogger(CartServiceImpl.class);
 
     public CartServiceImpl(CartRepository cartRepository, ProductRepository productRepository) {
         this.cartRepository = cartRepository;
@@ -49,25 +54,30 @@ public class CartServiceImpl implements CartService {
 
     
     @Override
-    public List<CartDTO> getCartItems(User user) {
-        List<Cart> cartList = cartRepository.findByUser(user);
-        List<CartDTO> cartDtoList = new ArrayList<>();
-        for(Cart cart : cartList) {
-        	ProductDTO productDto = new ProductDTO();
-        	CartDTO cartDto = new CartDTO();
-        	cartDto.setId(cart.getId());
-        	productDto.setProductId(cart.getProduct().getId());
-        	productDto.setName(cart.getProduct().getName());
-        	productDto.setDescription(cart.getProduct().getDescription());
-        	productDto.setPrice(cart.getProduct().getPrice());
-        	productDto.setImageUrl(cart.getProduct().getImageUrl());
-        	cartDto.setProduct(productDto);
-        	cartDto.setQuantity(cart.getQuantity());
-        	
-        	cartDtoList.add(cartDto);
-        }
-        
-        return cartDtoList;
+    public ResponseEntity<List<CartDTO>> getCartItems(User user) {
+    	try {
+    		List<Cart> cartList = cartRepository.findByUserId(user.getId());
+            List<CartDTO> cartDtoList = new ArrayList<>();
+            for(Cart cart : cartList) {
+            	ProductDTO productDto = new ProductDTO();
+            	CartDTO cartDto = new CartDTO();
+            	cartDto.setId(cart.getId());
+            	productDto.setProductId(cart.getProduct().getId());
+            	productDto.setName(cart.getProduct().getName());
+            	productDto.setDescription(cart.getProduct().getDescription());
+            	productDto.setPrice(cart.getProduct().getPrice());
+            	productDto.setImageUrl(cart.getProduct().getImageUrl());
+            	cartDto.setProduct(productDto);
+            	cartDto.setQuantity(cart.getQuantity());
+            	
+            	cartDtoList.add(cartDto);
+            }
+            
+            return ResponseEntity.status(HttpStatus.OK).body(cartDtoList);
+    	}catch(Exception e) {
+    		log.info("error during fetching cart {}", e.getMessage());
+    		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<>());
+    	}
     }
 
     @Override
