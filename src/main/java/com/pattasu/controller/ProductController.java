@@ -31,8 +31,9 @@ public class ProductController {
     // 🔓 Public access (no auth)
     @GetMapping
     public Page<Product> getAllProducts(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size) {
-        return productService.getAllProducts(PageRequest.of(page, size));
+                                        @RequestParam(defaultValue = "10") int size,
+                                        @RequestParam(defaultValue = "") String search) {
+        return productService.getAllProducts(PageRequest.of(page, size), search);
     }
 
     @GetMapping("/{id}")

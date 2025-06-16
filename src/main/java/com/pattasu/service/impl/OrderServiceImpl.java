@@ -9,12 +9,16 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.itextpdf.layout.properties.UnitValue;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
 import com.lowagie.text.Image;
 import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.pattasu.dto.GetOrderListDTO;
@@ -137,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+//    @Transactional
     public byte[] generateInvoicePdf(Long orderId) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document();
@@ -145,14 +150,44 @@ public class OrderServiceImpl implements OrderService {
 
             // Company Logo
             Image logo = Image.getInstance(logoPath);
-            logo.scaleToFit(100, 100);
-            document.add(logo);
+            logo.scaleToFit(80, 60);
+            logo.setAlignment(Image.ALIGN_LEFT);
+//            document.add(logo);
 
+            PdfPTable headerTable = new PdfPTable(3);
+            headerTable.setWidthPercentage(100);
+            headerTable.setWidths(new float[] {2f, 4f, 3f});
+            
+            PdfPCell logoCell = new PdfPCell(logo);
+            logoCell.setBorder(PdfPCell.NO_BORDER);
+            logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            headerTable.addCell(logoCell);
+            
+            PdfPCell centreCell = new PdfPCell(new Phrase("Surya Pyro Park", 
+            		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16)));
+            centreCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            centreCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            centreCell.setBorder(PdfPCell.NO_BORDER);
+            headerTable.addCell(centreCell);
+            
+            PdfPCell rightcell = new PdfPCell(new Phrase("Ph. 9876543210\n support@pattasu.com", 
+            		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
+            rightcell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            rightcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            rightcell.setBorder(PdfPCell.NO_BORDER);
+            headerTable.addCell(rightcell);
+            document.add(headerTable);
+            
+            document.add(new Paragraph(" "));
+            
+            
             // Company Name & Date
             Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
-            Paragraph title = new Paragraph("Pattasu Crackers", titleFont);
+            Paragraph title = new Paragraph("Invoice", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
+            document.add(new Paragraph(" "));
 
             document.add(new Paragraph("Invoice Date: " + new Date()));
             document.add(new Paragraph("Order ID: " + orderId));

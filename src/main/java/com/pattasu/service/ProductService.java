@@ -10,6 +10,6 @@ public interface ProductService {
 	ResponseEntity<Product> addProduct(Product product, MultipartFile file);
 	ResponseEntity<Product> updateProduct(Long id, Product product);
     void deleteProduct(Long id);
-    Page<Product> getAllProducts(Pageable pageable);
+    Page<Product> getAllProducts(Pageable pageable, String search);
     Product getProductById(Long id);
 }

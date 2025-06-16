@@ -80,9 +80,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "products", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    @Cacheable(value = "products", condition = "#search == null || #search.trim().isEmpty()", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<Product> getAllProducts(Pageable pageable, String search) {
+    	if(search == null || search.trim().isEmpty())
+    		return productRepository.findAll(pageable);
+    	else {
+    		return productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+    	}
     }
 
 
