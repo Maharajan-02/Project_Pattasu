@@ -1,12 +1,22 @@
 package com.pattasu.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.lowagie.text.Chunk;
+import com.lowagie.text.Document;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.Image;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import com.pattasu.dto.GetOrderListDTO;
 import com.pattasu.dto.OrderItemDTO;
 import com.pattasu.entity.Cart;
@@ -17,9 +27,11 @@ import com.pattasu.entity.User;
 import com.pattasu.enums.OrderStatus;
 import com.pattasu.exception.EmptyCartException;
 import com.pattasu.exception.InventoryException;
+import com.pattasu.exception.PdfHandleException;
 import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.OrderRepository;
 import com.pattasu.repository.ProductRepository;
+import com.pattasu.repository.UserRepository;
 import com.pattasu.service.OrderService;
 
 import jakarta.transaction.Transactional;
@@ -30,11 +42,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    
+    private static final String logoPath = "src/main/resources/static/logo.png";
 
-    public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository
+    		, UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -51,6 +68,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setAddress(address);
 
+        user.setAddress(address);
+        userRepository.save(user);
+        
         List<OrderItem> orderItems = new ArrayList<>();
         double total = 0.0;
 
@@ -93,12 +113,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public List<GetOrderListDTO> getUserOrders(User user) {
         List<Order> orderList = orderRepository.findByUser(user);
         
         List<GetOrderListDTO> orderListDto = new ArrayList<>();
         for(Order order : orderList) {
         	GetOrderListDTO orderDto = new GetOrderListDTO();
+        	orderDto.setOrderId(order.getId());
         	orderDto.setAddress(order.getAddress());
         	orderDto.setOrderDate(order.getOrderDate());
         	orderDto.setStatus(order.getOrderStatus());
@@ -112,5 +134,67 @@ public class OrderServiceImpl implements OrderService {
         }
         
         return orderListDto;
+    }
+
+    @Override
+    public byte[] generateInvoicePdf(Long orderId) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document();
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Company Logo
+            Image logo = Image.getInstance(logoPath);
+            logo.scaleToFit(100, 100);
+            document.add(logo);
+
+            // Company Name & Date
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Paragraph title = new Paragraph("Pattasu Crackers", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            document.add(new Paragraph("Invoice Date: " + new Date()));
+            document.add(new Paragraph("Order ID: " + orderId));
+            document.add(Chunk.NEWLINE);
+
+            // Table Header
+            PdfPTable table = new PdfPTable(4); // 4 columns: Product, Quantity, Price, Total
+            table.setWidthPercentage(100);
+            table.addCell("Product");
+            table.addCell("Quantity");
+            table.addCell("Price");
+            table.addCell("Total");
+
+            // Fetch order & items
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+
+            double totalAmount = 0;
+
+            for (OrderItem item : order.getItems()) {
+                table.addCell(item.getProduct().getName());
+                table.addCell(String.valueOf(item.getQuantity()));
+                table.addCell(String.format("₹ %.2f", item.getProduct().getPrice()));
+                double itemTotal = item.getQuantity() * item.getProduct().getPrice();
+                table.addCell(String.format("₹ %.2f", itemTotal));
+                totalAmount += itemTotal;
+            }
+
+            document.add(table);
+            document.add(Chunk.NEWLINE);
+
+            // Total Amount
+            Paragraph total = new Paragraph("Total: ₹ " + String.format("%.2f", totalAmount),
+                    new Font(Font.HELVETICA, 14, Font.BOLD));
+            total.setAlignment(Element.ALIGN_RIGHT);
+            document.add(total);
+
+            document.close();
+            return out.toByteArray();
+
+        } catch (Exception e) {
+            throw new PdfHandleException("Failed to generate invoice -" + e);
+        }
     }
 }
