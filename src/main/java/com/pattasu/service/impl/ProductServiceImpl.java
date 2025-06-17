@@ -1,5 +1,6 @@
 package com.pattasu.service.impl;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.ProductService;
@@ -23,7 +25,7 @@ import com.pattasu.service.ProductService;
 @Service
 public class ProductServiceImpl implements ProductService {
 	
-	private static final String UPLOAD = "uploads/";
+	private static final String UPLOAD = "/assets/products/";
 
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
@@ -34,14 +36,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
-    public ResponseEntity<Product> addProduct(Product product, MultipartFile file) {
+    public ResponseEntity<Product> addProduct(ProductUploadRequest productDto) {
     	try {
+    		
+    		MultipartFile file = productDto.getImage();
+    		Product product = new Product(productDto);
+    		
     		String fileName = System.currentTimeMillis() + "_" +file.getOriginalFilename();
     		Path path = Paths.get(UPLOAD + fileName);
     		Files.createDirectories(path.getParent());
     		Files.write(path, file.getBytes());
     		log.info("Path to store image is - {}",path.getParent());
-    		product.setImageUrl(path.getParent().toString());
+    		product.setImageUrl(path.getParent().toString() + fileName);
+    		System.out.println("Image url is - "+product.getImageUrl());
     		Product savedProduct = productRepository.save(product);
     		return ResponseEntity.ok(savedProduct);
     	}catch(Exception e) {

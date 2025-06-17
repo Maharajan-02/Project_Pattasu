@@ -1,15 +1,24 @@
 package com.pattasu.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.pattasu.dto.ProductUploadRequest;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "product")
 @JsonSerialize
 public class Product {
 	
-    @Id
+    public Product() {
+		super();
+	}
+    
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -18,6 +27,13 @@ public class Product {
     private double price;
     private String imageUrl;
     private int stockQuantity;
+    
+    public Product(ProductUploadRequest productDto) {
+		this.name = productDto.getName();
+		this.description = productDto.getDescription();
+		this.price = productDto.getPrice();
+		this.stockQuantity = productDto.getStockQuantity();
+	}
 
     public Long getId() {
         return id;
