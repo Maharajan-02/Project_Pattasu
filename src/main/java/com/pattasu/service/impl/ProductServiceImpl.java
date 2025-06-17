@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.pattasu.dto.ProductResponseDto;
 import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
+import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.ProductService;
 
@@ -31,25 +32,28 @@ public class ProductServiceImpl implements ProductService {
 
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
+    private final CartRepository cartRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, CartRepository cartRepository) {
         this.productRepository = productRepository;
+        this.cartRepository = cartRepository;
     }
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
     public ResponseEntity<Product> addProduct(ProductUploadRequest productDto) {
     	try {
-    		
+    		 String filename = "";
     		MultipartFile file = productDto.getImage();
-    		Product product = new Product(productDto);
-    		
-    		File directory = new File(UPLOAD);
-            if (!directory.exists()) directory.mkdirs();
+    		if(file != null) {
+    			File directory = new File(UPLOAD);
+                if (!directory.exists()) directory.mkdirs();
 
-            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filepath = Paths.get(UPLOAD, filename);
-            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+                filename =System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                Path filepath = Paths.get(UPLOAD, filename);
+                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+    		}
+    		Product product = new Product(productDto);
 
             product.setImageUrl("/images/" + filename);
     		
@@ -63,15 +67,26 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
-    public ResponseEntity<Product> updateProduct(Long id, Product updatedProduct) {
+    public ResponseEntity<Product> updateProduct(Long id, ProductUploadRequest updatedProduct) {
         try {
         	Product product = productRepository.findById(id)
                     .orElseThrow(() -> new NoSuchElementException("Product not found"));
+        	String filename = "";
+        	MultipartFile file = updatedProduct.getImage();
+    		
+    		if(file != null) {
+    			File directory = new File(UPLOAD);
+                if (!directory.exists()) directory.mkdirs();
+
+                filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                Path filepath = Paths.get(UPLOAD, filename);
+                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+    		}
 
             product.setName(updatedProduct.getName());
             product.setDescription(updatedProduct.getDescription());
             product.setPrice(updatedProduct.getPrice());
-            product.setImageUrl(updatedProduct.getImageUrl());
+            product.setImageUrl("/images/" + filename);
             product.setStockQuantity(updatedProduct.getStockQuantity());
             
             Product products = productRepository.save(product);
@@ -80,13 +95,12 @@ public class ProductServiceImpl implements ProductService {
         	log.info("Error while updating product {}", e.getMessage());
         	return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        
     }
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
     public void deleteProduct(Long id) {
+    	cartRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
 

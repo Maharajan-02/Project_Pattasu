@@ -1,5 +1,13 @@
 package com.pattasu.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.pattasu.dto.LoginRequest;
 import com.pattasu.dto.LoginResponse;
 import com.pattasu.dto.OtpVerificationRequest;
@@ -7,9 +15,6 @@ import com.pattasu.dto.UserDTO;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.entity.User;
 import com.pattasu.service.UserService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,5 +44,10 @@ public class UserController {
     @GetMapping("/user")
     public UserDTO getUser(@AuthenticationPrincipal User user) {
     	return new UserDTO(user);
+    }
+    
+    @GetMapping("/validate")
+    public ResponseEntity<String> validateToken(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok("Token is valid for user: " + user.getUsername());
     }
 }
