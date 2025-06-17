@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pattasu.dto.ProductResponseDto;
 import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
 import com.pattasu.service.ProductService;
@@ -32,7 +33,7 @@ public class ProductController {
 
     // 🔓 Public access (no auth)
     @GetMapping
-    public Page<Product> getAllProducts(@RequestParam(defaultValue = "0") int page,
+    public Page<ProductResponseDto> getAllProducts(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "10") int size,
                                         @RequestParam(defaultValue = "") String search) {
         return productService.getAllProducts(PageRequest.of(page, size), search);

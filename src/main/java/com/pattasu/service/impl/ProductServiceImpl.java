@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.pattasu.dto.ProductResponseDto;
 import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
 import com.pattasu.repository.ProductRepository;
@@ -25,7 +27,7 @@ import com.pattasu.service.ProductService;
 @Service
 public class ProductServiceImpl implements ProductService {
 	
-	private static final String UPLOAD = "/assets/products/";
+	private static final String UPLOAD = "uploads/";
 
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
@@ -42,13 +44,15 @@ public class ProductServiceImpl implements ProductService {
     		MultipartFile file = productDto.getImage();
     		Product product = new Product(productDto);
     		
-    		String fileName = System.currentTimeMillis() + "_" +file.getOriginalFilename();
-    		Path path = Paths.get(UPLOAD + fileName);
-    		Files.createDirectories(path.getParent());
-    		Files.write(path, file.getBytes());
-    		log.info("Path to store image is - {}",path.getParent());
-    		product.setImageUrl(path.getParent().toString() + fileName);
-    		System.out.println("Image url is - "+product.getImageUrl());
+    		File directory = new File(UPLOAD);
+            if (!directory.exists()) directory.mkdirs();
+
+            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            Path filepath = Paths.get(UPLOAD, filename);
+            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+
+            product.setImageUrl("/images/" + filename);
+    		
     		Product savedProduct = productRepository.save(product);
     		return ResponseEntity.ok(savedProduct);
     	}catch(Exception e) {
@@ -88,12 +92,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Cacheable(value = "products", condition = "#search == null || #search.trim().isEmpty()", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
-    public Page<Product> getAllProducts(Pageable pageable, String search) {
+    public Page<ProductResponseDto> getAllProducts(Pageable pageable, String search) {
+    	Page<Product> products;
     	if(search == null || search.trim().isEmpty())
-    		return productRepository.findAll(pageable);
+    		products = productRepository.findAll(pageable);
     	else {
-    		return productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+    		products = productRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
     	}
+    	return products.map(ProductResponseDto::new);
     }
 
 

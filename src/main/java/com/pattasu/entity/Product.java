@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "product")
@@ -79,4 +80,12 @@ public class Product {
 		this.stockQuantity = stockQuantity;
 	}
     
+	@Transient
+	public String getFullImageUrl() {
+	    if (this.imageUrl == null || this.imageUrl.isEmpty()) {
+	        return "/images/logo.png";
+	    }
+	    System.out.println("imageUrl - "+this.imageUrl);
+	    return this.imageUrl;
+	}
 }
