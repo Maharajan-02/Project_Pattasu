@@ -85,7 +85,6 @@ public class Product {
 	    if (this.imageUrl == null || this.imageUrl.isEmpty()) {
 	        return "/images/logo.png";
 	    }
-	    System.out.println("imageUrl - "+this.imageUrl);
 	    return this.imageUrl;
 	}
 }

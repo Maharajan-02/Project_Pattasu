@@ -5,11 +5,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.itextpdf.layout.properties.UnitValue;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
@@ -23,6 +27,8 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.pattasu.dto.GetOrderListDTO;
 import com.pattasu.dto.OrderItemDTO;
+import com.pattasu.dto.OrderResponseDTO;
+import com.pattasu.dto.UpdateOrderDTO;
 import com.pattasu.entity.Cart;
 import com.pattasu.entity.Order;
 import com.pattasu.entity.OrderItem;
@@ -47,8 +53,8 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    
-    private static final String logoPath = "src/main/resources/static/logo.png";
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
+    private static final String LOGO_PATH = "src/main/resources/static/logo.png";
 
     public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository
     		, UserRepository userRepository) {
@@ -117,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public List<GetOrderListDTO> getUserOrders(User user) {
         List<Order> orderList = orderRepository.findByUser(user);
         
@@ -149,10 +155,9 @@ public class OrderServiceImpl implements OrderService {
             document.open();
 
             // Company Logo
-            Image logo = Image.getInstance(logoPath);
+            Image logo = Image.getInstance(LOGO_PATH);
             logo.scaleToFit(80, 60);
             logo.setAlignment(Image.ALIGN_LEFT);
-//            document.add(logo);
 
             PdfPTable headerTable = new PdfPTable(3);
             headerTable.setWidthPercentage(100);
@@ -232,4 +237,63 @@ public class OrderServiceImpl implements OrderService {
             throw new PdfHandleException("Failed to generate invoice -" + e);
         }
     }
+
+	@Override
+	public ResponseEntity<String> updateOrder(UpdateOrderDTO updateOrder) {
+	    try {
+	        Optional<Order> optionalOrder = orderRepository.findById(updateOrder.getId());
+	        if (optionalOrder.isEmpty()) {
+	            log.warn("No order found with id: {}", updateOrder.getId());
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
+	        }
+
+	        Order order = optionalOrder.get();
+
+	        // Validate status against enum
+	        try {
+	            OrderStatus newStatus = OrderStatus.valueOf(updateOrder.getOrderStatus().toString().toUpperCase());
+	            order.setOrderStatus(newStatus);
+	        } catch (IllegalArgumentException ex) {
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid order status");
+	        }
+
+	        order.setTrackingId(updateOrder.getTrackingId());
+	        orderRepository.save(order);
+
+	        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order updated successfully");
+	    } catch (Exception e) {
+	        log.error("Error while updating order: {}", e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update order");
+	    }
+	}
+
+	@Override
+	public ResponseEntity<List<OrderResponseDTO>> getAllOrderWithUserInfo() {
+		try {
+			List<Order> orders = orderRepository.findAll();
+			List<OrderResponseDTO> orderWithUserList = orders.stream().map(order -> {
+		        OrderResponseDTO dto = new OrderResponseDTO();
+		        dto.setId(order.getId());
+		        dto.setOrderDate(order.getOrderDate().toString());
+		        dto.setTotalPrice(order.getTotalPrice());
+		        dto.setAddress(order.getAddress());
+		        dto.setItems(order.getItems());
+		        dto.setOrderStatus(order.getOrderStatus());
+		        dto.setTrackingId(order.getTrackingId());
+
+		        // Add user info
+		        dto.setUserName(order.getUser().getName());
+		        dto.setUserEmail(order.getUser().getUsername());
+		        dto.setUserPhone(order.getUser().getPhoneNumber());
+
+		        return dto;
+		    }).collect(Collectors.toList());
+			
+			return ResponseEntity.status(HttpStatus.OK).body(orderWithUserList);
+		}catch(Exception e) {
+			log.info("error while fetching order detail with user details {} ", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<>());
+		}
+	}
+
 }
