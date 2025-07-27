@@ -24,4 +24,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     		+ "JOIN FETCH i.product p "
     		+ "ORDER BY o.orderDate DESC")
     List<Order> findAllWithUserAndItems();
+    
+    @Query("SELECT SUM(o.totalPrice) FROM Order o")
+    Double sumAllOrderTotals();
 }

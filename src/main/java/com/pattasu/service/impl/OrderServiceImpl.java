@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
         		    .collect(Collectors.toList());
         	orderDto.setOrderItemDto(orderItemList);
         	orderDto.setNumberOfItems(orderItemList.size());
-        	
+        	orderDto.setTrackingId(order.getTrackingId());
         	orderListDto.add(orderDto);
         }
         
