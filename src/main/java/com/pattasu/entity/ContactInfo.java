@@ -11,7 +11,7 @@ public class ContactInfo {
 	
 	private String address;
 	
-	private String phoneNumner;
+	private String phoneNumber;
 	
 	private String mailId;
 
@@ -31,12 +31,12 @@ public class ContactInfo {
 		this.address = address;
 	}
 
-	public String getPhoneNumner() {
-		return phoneNumner;
+	public String getPhoneNumber() {
+		return phoneNumber;
 	}
 
-	public void setPhoneNumner(String phoneNumner) {
-		this.phoneNumner = phoneNumner;
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
 	}
 
 	public String getMailId() {
@@ -53,7 +53,7 @@ public class ContactInfo {
 		this.shopName = contactDto.getShopName();
 		this.address = contactDto.getAddress();
 		this.mailId = contactDto.getMailId();
-		this.phoneNumner = contactDto.getPhoneNumner();
+		this.phoneNumber = contactDto.getPhoneNumber();
 	}
 	
 	
