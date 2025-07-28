@@ -1,10 +1,5 @@
 package com.pattasu.service.impl;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
@@ -21,41 +16,43 @@ import org.springframework.web.multipart.MultipartFile;
 import com.pattasu.dto.ProductResponseDto;
 import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
-import com.pattasu.repository.CartRepository;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.ProductService;
+import com.pattasu.util.CloudinaryService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 	
-	private static final String UPLOAD = "uploads/";
+//	private static final String UPLOAD = "uploads/";
 
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
-    private final CartRepository cartRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public ProductServiceImpl(ProductRepository productRepository, CartRepository cartRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, CloudinaryService cloudinaryService) {
         this.productRepository = productRepository;
-        this.cartRepository = cartRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
     @CacheEvict(value = { "products", "product" }, allEntries = true)
     public ResponseEntity<Product> addProduct(ProductUploadRequest productDto) {
     	try {
-    		 String filename = "";
+    		String imageUrl = null;
     		MultipartFile file = productDto.getImage();
-    		if(file != null) {
-    			File directory = new File(UPLOAD);
-                if (!directory.exists()) directory.mkdirs();
-
-                filename =System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                Path filepath = Paths.get(UPLOAD, filename);
-                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+    		if(file != null && !file.isEmpty()) {
+//    			File directory = new File(UPLOAD);
+//                if (!directory.exists()) directory.mkdirs();
+//
+//                filename =System.currentTimeMillis() + "_" + file.getOriginalFilename();
+//                Path filepath = Paths.get(UPLOAD, filename);
+//                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+    			imageUrl = cloudinaryService.uploadFile(file);
     		}
     		Product product = new Product(productDto);
-
-            product.setImageUrl("/images/" + filename);
+    		if(imageUrl != null) {
+    			product.setImageUrl( imageUrl);
+    		}
     		
     		Product savedProduct = productRepository.save(product);
     		return ResponseEntity.ok(savedProduct);
@@ -71,23 +68,30 @@ public class ProductServiceImpl implements ProductService {
         try {
         	Product product = productRepository.findById(id)
                     .orElseThrow(() -> new NoSuchElementException("Product not found"));
-        	String filename = "";
+        	String filename = null;
         	MultipartFile file = updatedProduct.getImage();
     		
-    		if(file != null) {
-    			File directory = new File(UPLOAD);
-                if (!directory.exists()) directory.mkdirs();
-
-                filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                Path filepath = Paths.get(UPLOAD, filename);
-                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+    		if(file != null && !file.isEmpty()) {
+//    			File directory = new File(UPLOAD);
+//                if (!directory.exists()) directory.mkdirs();
+//
+//                filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+//                Path filepath = Paths.get(UPLOAD, filename);
+//                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
+//                
+//                product.setImageUrl("/images/" + filename);
+    			filename=cloudinaryService.uploadFile(file);
+    			if(filename != null) {
+    				product.setImageUrl(filename);
+    			}
     		}
 
             product.setName(updatedProduct.getName());
             product.setDescription(updatedProduct.getDescription());
             product.setPrice(updatedProduct.getPrice());
-            product.setImageUrl("/images/" + filename);
+            
             product.setStockQuantity(updatedProduct.getStockQuantity());
+            product.setActive(updatedProduct.getActive());
             
             Product products = productRepository.save(product);
             return ResponseEntity.ok(products);
@@ -95,13 +99,6 @@ public class ProductServiceImpl implements ProductService {
         	log.info("Error while updating product {}", e.getMessage());
         	return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @Override
-    @CacheEvict(value = { "products", "product" }, allEntries = true)
-    public void deleteProduct(Long id) {
-    	cartRepository.deleteByProductId(id);
-        productRepository.deleteById(id);
     }
 
     @Override
@@ -122,5 +119,17 @@ public class ProductServiceImpl implements ProductService {
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Product not found"));
+    }
+
+    @Override
+    @Cacheable(value = "products", key = "'active-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #search")
+    public Page<ProductResponseDto> getActiveProducts(Pageable pageable, String search) {
+        Page<Product> products;
+        if (search == null || search.trim().isEmpty()) {
+            products = productRepository.findByActiveTrue(pageable);
+        } else {
+            products = productRepository.findByActiveTrueAndNameContainingIgnoreCase(search.trim(), pageable);
+        }
+        return products.map(ProductResponseDto::new);
     }
 }

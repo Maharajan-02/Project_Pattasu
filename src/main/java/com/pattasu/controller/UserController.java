@@ -1,5 +1,7 @@
 package com.pattasu.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,8 @@ import com.pattasu.service.UserService;
 @RestController
 @RequestMapping("/api/auth")
 public class UserController {
+	
+	private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -38,6 +42,7 @@ public class UserController {
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    	log.info("Login attempt: email={}, password={}", request.getEmail(), request.getPassword());
         return userService.login(request);
     }
     

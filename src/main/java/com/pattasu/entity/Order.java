@@ -44,6 +44,9 @@ public class Order {
     
     @Nullable
     private String trackingId;
+    
+    @Nullable
+    private String logisticsPartner;
 
     public String getTrackingId() {
 		return trackingId;
@@ -81,5 +84,13 @@ public class Order {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public String getLogisticsPartner() {
+		return logisticsPartner;
+	}
+
+	public void setLogisticsPartner(String logisticsPartner) {
+		this.logisticsPartner = logisticsPartner;
 	}
 }

@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +36,13 @@ public class ProductController {
                                         @RequestParam(defaultValue = "") String search) {
         return productService.getAllProducts(PageRequest.of(page, size), search);
     }
+    
+    @GetMapping("/active")
+    public Page<ProductResponseDto> getActiveProducts(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size,
+                                        @RequestParam(defaultValue = "") String search) {
+        return productService.getActiveProducts(PageRequest.of(page, size), search);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
@@ -56,10 +62,4 @@ public class ProductController {
         return productService.updateProduct(id, updatedProduct);
     }
 
-    @PreAuthorize("hasAuthority('admin')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok("Product deleted successfully");
-    }
 }

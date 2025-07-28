@@ -11,7 +11,7 @@ import com.pattasu.entity.Product;
 public interface ProductService {
 	ResponseEntity<Product> addProduct(ProductUploadRequest product);
 	ResponseEntity<Product> updateProduct(Long id, ProductUploadRequest product);
-    void deleteProduct(Long id);
     Page<ProductResponseDto> getAllProducts(Pageable pageable, String search);
+    Page<ProductResponseDto> getActiveProducts(Pageable pageable, String search);
     Product getProductById(Long id);
 }

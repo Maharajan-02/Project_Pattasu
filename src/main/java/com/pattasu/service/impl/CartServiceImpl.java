@@ -59,14 +59,9 @@ public class CartServiceImpl implements CartService {
     		List<Cart> cartList = cartRepository.findByUserId(user.getId());
             List<CartDTO> cartDtoList = new ArrayList<>();
             for(Cart cart : cartList) {
-            	ProductDTO productDto = new ProductDTO();
+            	ProductDTO productDto = new ProductDTO(cart.getProduct());
             	CartDTO cartDto = new CartDTO();
             	cartDto.setId(cart.getId());
-            	productDto.setProductId(cart.getProduct().getId());
-            	productDto.setName(cart.getProduct().getName());
-            	productDto.setDescription(cart.getProduct().getDescription());
-            	productDto.setPrice(cart.getProduct().getPrice());
-            	productDto.setImageUrl(cart.getProduct().getImageUrl());
             	cartDto.setProduct(productDto);
             	cartDto.setQuantity(cart.getQuantity());
             	

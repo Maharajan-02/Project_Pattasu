@@ -19,7 +19,15 @@ public class MailService{
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
         message.setSubject("Your Pattasu OTP Code");
-        message.setText("Your OTP is: " + otp + "\nIt will expire in 2 minutes.");
+        message.setText(getMailBody(otp));
         mailSender.send(message);
+    }
+    
+    private String getMailBody(String otp) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("Welcome to Surya Pyro Park\n");
+    	sb.append("Your otp to login is " + otp); 
+    	sb.append("\n Your Otp will expire in 3 minutes");
+    	return sb.toString();
     }
 }

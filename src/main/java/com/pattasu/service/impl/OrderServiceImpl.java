@@ -22,6 +22,7 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.Image;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -54,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
-    private static final String LOGO_PATH = "src/main/resources/static/logo.png";
+    private static final String LOGO_PATH = "src/main/resources/static/logo.png"; //need to change this path. 
 
     public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository
     		, UserRepository userRepository) {
@@ -140,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
         	orderDto.setOrderItemDto(orderItemList);
         	orderDto.setNumberOfItems(orderItemList.size());
         	orderDto.setTrackingId(order.getTrackingId());
+        	orderDto.setLogisticsPartner(order.getLogisticsPartner()!= null ? order.getLogisticsPartner() : "");
         	orderListDto.add(orderDto);
         }
         
@@ -157,14 +159,14 @@ public class OrderServiceImpl implements OrderService {
             // Company Logo
             Image logo = Image.getInstance(LOGO_PATH);
             logo.scaleToFit(80, 60);
-            logo.setAlignment(Image.ALIGN_LEFT);
+            logo.setAlignment(Element.ALIGN_LEFT);
 
             PdfPTable headerTable = new PdfPTable(3);
             headerTable.setWidthPercentage(100);
             headerTable.setWidths(new float[] {2f, 4f, 3f});
             
             PdfPCell logoCell = new PdfPCell(logo);
-            logoCell.setBorder(PdfPCell.NO_BORDER);
+            logoCell.setBorder(Rectangle.NO_BORDER);
             logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             headerTable.addCell(logoCell);
@@ -173,14 +175,14 @@ public class OrderServiceImpl implements OrderService {
             		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16)));
             centreCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             centreCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            centreCell.setBorder(PdfPCell.NO_BORDER);
+            centreCell.setBorder(Rectangle.NO_BORDER);
             headerTable.addCell(centreCell);
             
             PdfPCell rightcell = new PdfPCell(new Phrase("Ph. 9876543210\n support@pattasu.com", 
             		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
             rightcell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             rightcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            rightcell.setBorder(PdfPCell.NO_BORDER);
+            rightcell.setBorder(Rectangle.NO_BORDER);
             headerTable.addCell(rightcell);
             document.add(headerTable);
             
@@ -257,10 +259,11 @@ public class OrderServiceImpl implements OrderService {
 	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid order status");
 	        }
 
+	        order.setLogisticsPartner(updateOrder.getLogisticsPartner());
 	        order.setTrackingId(updateOrder.getTrackingId());
 	        orderRepository.save(order);
 
-	        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order updated successfully");
+	        return ResponseEntity.status(HttpStatus.OK).body("Order updated successfully");
 	    } catch (Exception e) {
 	        log.error("Error while updating order: {}", e.getMessage());
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update order");
@@ -280,6 +283,7 @@ public class OrderServiceImpl implements OrderService {
 		        dto.setItems(order.getItems());
 		        dto.setOrderStatus(order.getOrderStatus());
 		        dto.setTrackingId(order.getTrackingId());
+		        dto.setLogisticsPartner(order.getLogisticsPartner());
 
 		        // Add user info
 		        dto.setUserName(order.getUser().getName());

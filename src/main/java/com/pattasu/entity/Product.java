@@ -3,6 +3,7 @@ package com.pattasu.entity;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.pattasu.dto.ProductUploadRequest;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,11 +30,15 @@ public class Product {
     private String imageUrl;
     private int stockQuantity;
     
-    public Product(ProductUploadRequest productDto) {
+    @Column(nullable = false)
+    private boolean active = true;
+
+	public Product(ProductUploadRequest productDto) {
 		this.name = productDto.getName();
 		this.description = productDto.getDescription();
 		this.price = productDto.getPrice();
 		this.stockQuantity = productDto.getStockQuantity();
+		this.active = productDto.getActive();
 	}
 
     public Long getId() {
@@ -87,4 +92,14 @@ public class Product {
 	    }
 	    return this.imageUrl;
 	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+	
 }

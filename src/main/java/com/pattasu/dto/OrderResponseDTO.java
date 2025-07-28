@@ -14,7 +14,7 @@ public class OrderResponseDTO {
     private List<OrderItem> items;
     private OrderStatus orderStatus;
     private String trackingId;
-
+    private String logisticsPartner;
     // Add user info
     private String userName;
     private String userEmail;
@@ -79,6 +79,12 @@ public class OrderResponseDTO {
 	}
 	public void setUserPhone(String userPhone) {
 		this.userPhone = userPhone;
+	}
+	public String getLogisticsPartner() {
+		return logisticsPartner;
+	}
+	public void setLogisticsPartner(String logisticsPartner) {
+		this.logisticsPartner = logisticsPartner;
 	}
     
 }

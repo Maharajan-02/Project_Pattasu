@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.pattasu.entity.User;
@@ -13,13 +14,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class JwtService {
+	
+    private static Key secretKey;
 
-    private static final String BASE64_SECRET = "3Nf43HgNblDqXQ7sy5uEt2YJ3CZ+lQ0BBu+0MyDq4S4=";
-    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(Base64.getDecoder().decode(BASE64_SECRET));
-    private static final long EXPIRATION = 24L * 60 * 60 * 1000; // 24 hours
+    private final String base64Secret;
+
+    public static final long EXPIRATION = 24L * 60 * 60 * 1000; // 24 hours
+
+    public JwtService(@Value("${loginSecurityKey}") String base64Secret) {
+        this.base64Secret = base64Secret;
+    }
+
+    @PostConstruct
+    private void init() {
+        JwtService.secretKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(base64Secret));
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -31,7 +44,7 @@ public class JwtService {
                 .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -55,7 +68,7 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

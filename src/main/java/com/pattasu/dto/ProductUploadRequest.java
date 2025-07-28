@@ -9,6 +9,8 @@ public class ProductUploadRequest {
     private double price;
     private int stockQuantity;
     private MultipartFile image;
+    private Boolean active;
+    
 	public String getName() {
 		return name;
 	}
@@ -39,6 +41,11 @@ public class ProductUploadRequest {
 	public void setImage(MultipartFile image) {
 		this.image = image;
 	}
-    
+	public Boolean getActive() {
+		return active;
+	}
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
     
 }

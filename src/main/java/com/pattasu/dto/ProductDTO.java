@@ -12,12 +12,16 @@ public class ProductDTO {
 		this.description = product.getDescription();
 		this.price = product.getPrice();
 		this.imageUrl = product.getImageUrl();
+		this.active = product.isActive();
+		this.stockQuantity = product.getStockQuantity();
 	}
 	private Long productId;
     private String name;
     private String description;
     private double price;
     private String imageUrl;
+    private boolean active;
+    private int stockQuantity;
     
 	public Long getProductId() {
 		return productId;
@@ -48,5 +52,21 @@ public class ProductDTO {
 	}
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public int getStockQuantity() {
+		return stockQuantity;
+	}
+
+	public void setStockQuantity(int stockQuantity) {
+		this.stockQuantity = stockQuantity;
 	}
 }

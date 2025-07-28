@@ -14,6 +14,7 @@ public class GetOrderListDTO {
 	private OrderStatus status;
 	private int numberOfItems;
 	private String trackingId;
+	private String logisticsPartner;
 	
 	public Long getOrderId() {
 		return orderId;
@@ -56,6 +57,12 @@ public class GetOrderListDTO {
 	}
 	public void setTrackingId(String trackingId) {
 		this.trackingId = trackingId;
+	}
+	public String getLogisticsPartner() {
+		return logisticsPartner;
+	}
+	public void setLogisticsPartner(String logisticsPartner) {
+		this.logisticsPartner = logisticsPartner;
 	}
 	
 }

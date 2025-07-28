@@ -8,6 +8,7 @@ public class ProductResponseDto {
     private String description;
     private double price;
     private int stockQuantity;
+    private boolean active;
     private String imageUrl; // full path for UI
 
     public ProductResponseDto(Product product) {
@@ -17,6 +18,7 @@ public class ProductResponseDto {
         this.price = product.getPrice();
         this.stockQuantity = product.getStockQuantity();
         this.imageUrl = product.getFullImageUrl(); // use computed field
+        this.active = product.isActive();
     }
 
 	public Long getId() {
@@ -67,5 +69,12 @@ public class ProductResponseDto {
 		this.imageUrl = imageUrl;
 	}
 
-    
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
 }
