@@ -11,8 +11,8 @@ import com.pattasu.entity.Product;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 	Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 	
-	Page<Product> findByActiveTrue(Pageable pageable);
+	Page<Product> findByActiveProductTrue(Pageable pageable);
 
-	Page<Product> findByActiveTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
+	Page<Product> findByActiveProductTrueAndNameContainingIgnoreCase(String name, Pageable pageable);
 	
 }

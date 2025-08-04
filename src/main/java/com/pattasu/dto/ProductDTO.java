@@ -74,7 +74,7 @@ public class ProductDTO {
 		this.description = product.getDescription();
 		this.price = product.getPrice();
 		this.imageUrl = product.getImageUrl();
-		this.active = product.isActive();
+		this.active = product.isActiveProduct();
 		this.stockQuantity = product.getStockQuantity();
 		this.discount = product.getDiscount() != null ? product.getDiscount() : 0.0;
 	}

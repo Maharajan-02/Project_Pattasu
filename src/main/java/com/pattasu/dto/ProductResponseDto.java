@@ -20,7 +20,7 @@ public class ProductResponseDto {
         this.price = product.getPrice();
         this.stockQuantity = product.getStockQuantity();
         this.imageUrl = product.getFullImageUrl(); // use computed field
-        this.active = product.isActive();
+        this.active = product.isActiveProduct();
         if(product.getDiscount() == null) {
         	this.discount = 0;
         }else {

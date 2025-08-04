@@ -81,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
             product.setPrice(updatedProduct.getPrice());
             
             product.setStockQuantity(updatedProduct.getStockQuantity());
-            product.setActive(updatedProduct.getActive());
+            product.setActiveProduct(updatedProduct.getActive());
             if(updatedProduct.getDiscount() != null){
                 product.setDiscount(updatedProduct.getDiscount());
             }
@@ -115,13 +115,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "products", key = "'active-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #search")
     public Page<ProductResponseDto> getActiveProducts(Pageable pageable, String search) {
         Page<Product> products;
         if (search == null || search.trim().isEmpty()) {
-            products = productRepository.findByActiveTrue(pageable);
+            products = productRepository.findByActiveProductTrue(pageable);
         } else {
-            products = productRepository.findByActiveTrueAndNameContainingIgnoreCase(search.trim(), pageable);
+            products = productRepository.findByActiveProductTrueAndNameContainingIgnoreCase(search.trim(), pageable);
         }
         return products.map(ProductResponseDto::new);
     }

@@ -21,7 +21,8 @@ public class ImageUploadService {
     @Value("${privateKey}")
     private String privateKey;
     
-    public String upload(MultipartFile file) throws Exception {
+    @SuppressWarnings("rawtypes")
+	public String upload(MultipartFile file) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(privateKey, "");  // ImageKit requires privateKey as basic auth
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);

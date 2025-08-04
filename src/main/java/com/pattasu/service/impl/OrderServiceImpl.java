@@ -80,7 +80,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         if(cartItems.stream().map(Cart::getProduct).filter(prod -> prod.getStockQuantity() < 1).count() > 0
-        		|| cartItems.stream().map(Cart::getProduct).filter(prod -> !prod.isActive()).count() > 0) {
+        		|| cartItems.stream().map(Cart::getProduct).filter(prod -> !prod.isActiveProduct()).count() > 0) {
         	throw new EmptyCartException("One or more products is out of stock or not available");
         }
         

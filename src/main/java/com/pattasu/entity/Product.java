@@ -34,14 +34,14 @@ public class Product {
     private Double discount;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private boolean activeProduct = true;
 
 	public Product(ProductUploadRequest productDto) {
 		this.name = productDto.getName();
 		this.description = productDto.getDescription();
 		this.price = productDto.getPrice();
 		this.stockQuantity = productDto.getStockQuantity();
-		this.active = productDto.getActive();
+		this.activeProduct = productDto.getActive();
 	}
 
     public Long getId() {
@@ -96,12 +96,12 @@ public class Product {
 	    return this.imageUrl;
 	}
 
-	public boolean isActive() {
-		return active;
+	public boolean isActiveProduct() {
+		return activeProduct;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
+	public void setActiveProduct(boolean activeProduct) {
+		this.activeProduct = activeProduct;
 	}
 
 	public Double getDiscount() {
