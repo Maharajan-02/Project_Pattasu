@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
-    private static final String LOGO_PATH = "src/main/resources/static/logo.png"; //need to change this path. 
+    private static final String LOGO_PATH = "static/logo.png"; //need to change this path. 
 
     public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository
     		, UserRepository userRepository) {
@@ -74,6 +75,11 @@ public class OrderServiceImpl implements OrderService {
             throw new EmptyCartException("Cart is empty");
         }
 
+        if(cartItems.stream().map(Cart::getProduct).filter(prod -> prod.getStockQuantity() < 1).count() > 0
+        		|| cartItems.stream().map(Cart::getProduct).filter(prod -> !prod.isActive()).count() > 0) {
+        	throw new EmptyCartException("One or more products is out of stock or not available");
+        }
+        
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
@@ -88,7 +94,8 @@ public class OrderServiceImpl implements OrderService {
         for (Cart cart : cartItems) {
             Product product = cart.getProduct();
             int quantity = cart.getQuantity();
-            double price = product.getPrice();
+
+            double discountedPrice = Math.round(product.getFinalPrice() * 100.0) / 100.0;
 
             // Check stock
             if (product.getStockQuantity() < quantity) {
@@ -104,10 +111,10 @@ public class OrderServiceImpl implements OrderService {
             item.setOrder(order);
             item.setProduct(product);
             item.setQuantity(quantity);
-            item.setPrice(price);
+            item.setPrice(discountedPrice); // ✅ store discounted price here
 
             orderItems.add(item);
-            total += price * quantity;
+            total += discountedPrice * quantity; // ✅ use discounted price in total
         }
 
         order.setItems(orderItems);
@@ -157,7 +164,7 @@ public class OrderServiceImpl implements OrderService {
             document.open();
 
             // Company Logo
-            Image logo = Image.getInstance(LOGO_PATH);
+            Image logo = Image.getInstance(new ClassPathResource(LOGO_PATH).getURL());
             logo.scaleToFit(80, 60);
             logo.setAlignment(Element.ALIGN_LEFT);
 
@@ -217,8 +224,8 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItem item : order.getItems()) {
                 table.addCell(item.getProduct().getName());
                 table.addCell(String.valueOf(item.getQuantity()));
-                table.addCell(String.format("₹ %.2f", item.getProduct().getPrice()));
-                double itemTotal = item.getQuantity() * item.getProduct().getPrice();
+                table.addCell(String.format("₹ %.2f", item.getPrice()));
+                double itemTotal = item.getQuantity() * item.getPrice();
                 table.addCell(String.format("₹ %.2f", itemTotal));
                 totalAmount += itemTotal;
             }

@@ -22,7 +22,6 @@ import com.pattasu.dto.GetOrderListDTO;
 import com.pattasu.dto.OrderRequestDTO;
 import com.pattasu.dto.OrderResponseDTO;
 import com.pattasu.dto.UpdateOrderDTO;
-import com.pattasu.entity.Order;
 import com.pattasu.entity.User;
 import com.pattasu.service.OrderService;
 
@@ -38,16 +37,16 @@ public class OrderController {
     }
 
     @PostMapping("/place")
-    public ResponseEntity<Order> placeOrder(@RequestBody OrderRequestDTO orderRequestDto, 
+    public ResponseEntity<String> placeOrder(@RequestBody OrderRequestDTO orderRequestDto, 
     	    @AuthenticationPrincipal User user){
     	try {
-        	Order order = orderService.placeOrder(orderRequestDto.getAddress(), user);
-            return ResponseEntity.ok(order);
+        	orderService.placeOrder(orderRequestDto.getAddress(), user);
+            return ResponseEntity.status(HttpStatus.OK).body("Order Placed Succesfully");
         }catch(Exception e) {
         	log.info("error during order placement {}", e.getMessage());
         	return ResponseEntity
         			.status(HttpStatus.BAD_REQUEST)
-        			.body(new Order());
+        			.body(e.getMessage());
         }
     }
     

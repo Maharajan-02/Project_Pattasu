@@ -18,20 +18,18 @@ import com.pattasu.dto.ProductUploadRequest;
 import com.pattasu.entity.Product;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.service.ProductService;
-import com.pattasu.util.CloudinaryService;
+import com.pattasu.util.ImageUploadService;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 	
-//	private static final String UPLOAD = "uploads/";
-
 	private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
-    private final CloudinaryService cloudinaryService;
+    private final ImageUploadService imageUploadService;
 
-    public ProductServiceImpl(ProductRepository productRepository, CloudinaryService cloudinaryService) {
+    public ProductServiceImpl(ProductRepository productRepository, ImageUploadService imageUploadService) {
         this.productRepository = productRepository;
-        this.cloudinaryService = cloudinaryService;
+        this.imageUploadService = imageUploadService;
     }
 
     @Override
@@ -40,18 +38,18 @@ public class ProductServiceImpl implements ProductService {
     	try {
     		String imageUrl = null;
     		MultipartFile file = productDto.getImage();
+    		
     		if(file != null && !file.isEmpty()) {
-//    			File directory = new File(UPLOAD);
-//                if (!directory.exists()) directory.mkdirs();
-//
-//                filename =System.currentTimeMillis() + "_" + file.getOriginalFilename();
-//                Path filepath = Paths.get(UPLOAD, filename);
-//                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
-    			imageUrl = cloudinaryService.uploadFile(file);
+       		 	imageUrl = imageUploadService.upload(file);
     		}
+    		
     		Product product = new Product(productDto);
     		if(imageUrl != null) {
     			product.setImageUrl( imageUrl);
+    		}
+    		
+    		if(productDto.getDiscount() != null){
+    		    product.setDiscount(productDto.getDiscount());
     		}
     		
     		Product savedProduct = productRepository.save(product);
@@ -72,15 +70,7 @@ public class ProductServiceImpl implements ProductService {
         	MultipartFile file = updatedProduct.getImage();
     		
     		if(file != null && !file.isEmpty()) {
-//    			File directory = new File(UPLOAD);
-//                if (!directory.exists()) directory.mkdirs();
-//
-//                filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-//                Path filepath = Paths.get(UPLOAD, filename);
-//                Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
-//                
-//                product.setImageUrl("/images/" + filename);
-    			filename=cloudinaryService.uploadFile(file);
+    			filename=imageUploadService.upload(file);
     			if(filename != null) {
     				product.setImageUrl(filename);
     			}
@@ -92,6 +82,9 @@ public class ProductServiceImpl implements ProductService {
             
             product.setStockQuantity(updatedProduct.getStockQuantity());
             product.setActive(updatedProduct.getActive());
+            if(updatedProduct.getDiscount() != null){
+                product.setDiscount(updatedProduct.getDiscount());
+            }
             
             Product products = productRepository.save(product);
             return ResponseEntity.ok(products);
@@ -102,7 +95,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "products", condition = "#search == null || #search.trim().isEmpty()", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+//    @Cacheable(value = "products", condition = "#search == null || #search.trim().isEmpty()", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<ProductResponseDto> getAllProducts(Pageable pageable, String search) {
     	Page<Product> products;
     	if(search == null || search.trim().isEmpty())

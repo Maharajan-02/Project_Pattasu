@@ -10,6 +10,7 @@ public class ProductUploadRequest {
     private int stockQuantity;
     private MultipartFile image;
     private Boolean active;
+    private Double discount;
     
 	public String getName() {
 		return name;
@@ -46,6 +47,12 @@ public class ProductUploadRequest {
 	}
 	public void setActive(Boolean active) {
 		this.active = active;
+	}
+	public Double getDiscount() {
+		return discount;
+	}
+	public void setDiscount(Double discount) {
+		this.discount = discount;
 	}
     
 }

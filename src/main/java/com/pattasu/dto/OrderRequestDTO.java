@@ -7,8 +7,6 @@ public class OrderRequestDTO {
 
     private String address;
 
-    public OrderRequestDTO() {}
-
     public String getAddress() {
         return address;
     }

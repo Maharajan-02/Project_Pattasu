@@ -30,6 +30,9 @@ public class Product {
     private String imageUrl;
     private int stockQuantity;
     
+    @Column(name = "discount", nullable = true)
+    private Double discount;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -100,6 +103,21 @@ public class Product {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+
+	public Double getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(Double discount) {
+		this.discount = discount;
+	}
 	
+	public Double getFinalPrice() {
+	    if (discount != null && discount > 0) {
+	        return price - (price * discount / 100);
+	    }
+	    return price;
+	}
+
 	
 }

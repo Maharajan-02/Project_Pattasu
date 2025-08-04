@@ -2,6 +2,7 @@ package com.pattasu.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.pattasu.dto.AddToCartRequest;
 import com.pattasu.dto.CartDTO;
-import com.pattasu.dto.ProductDTO;
 import com.pattasu.entity.Cart;
 import com.pattasu.entity.Product;
 import com.pattasu.entity.User;
@@ -56,19 +56,12 @@ public class CartServiceImpl implements CartService {
     @Override
     public ResponseEntity<List<CartDTO>> getCartItems(User user) {
     	try {
-    		List<Cart> cartList = cartRepository.findByUserId(user.getId());
-            List<CartDTO> cartDtoList = new ArrayList<>();
-            for(Cart cart : cartList) {
-            	ProductDTO productDto = new ProductDTO(cart.getProduct());
-            	CartDTO cartDto = new CartDTO();
-            	cartDto.setId(cart.getId());
-            	cartDto.setProduct(productDto);
-            	cartDto.setQuantity(cart.getQuantity());
-            	
-            	cartDtoList.add(cartDto);
-            }
+    		List<Cart> cartItems = cartRepository.findByUser(user);
+            List<CartDTO> result = cartItems.stream()
+                    .map(item -> new CartDTO(item.getProduct(), item.getQuantity()))
+                    .collect(Collectors.toList());
             
-            return ResponseEntity.status(HttpStatus.OK).body(cartDtoList);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
     	}catch(Exception e) {
     		log.info("error during fetching cart {}", e.getMessage());
     		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<>());
