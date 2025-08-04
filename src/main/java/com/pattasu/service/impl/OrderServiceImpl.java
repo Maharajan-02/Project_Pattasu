@@ -32,6 +32,7 @@ import com.pattasu.dto.OrderItemDTO;
 import com.pattasu.dto.OrderResponseDTO;
 import com.pattasu.dto.UpdateOrderDTO;
 import com.pattasu.entity.Cart;
+import com.pattasu.entity.ContactInfo;
 import com.pattasu.entity.Order;
 import com.pattasu.entity.OrderItem;
 import com.pattasu.entity.Product;
@@ -41,6 +42,7 @@ import com.pattasu.exception.EmptyCartException;
 import com.pattasu.exception.InventoryException;
 import com.pattasu.exception.PdfHandleException;
 import com.pattasu.repository.CartRepository;
+import com.pattasu.repository.ContactRepository;
 import com.pattasu.repository.OrderRepository;
 import com.pattasu.repository.ProductRepository;
 import com.pattasu.repository.UserRepository;
@@ -55,15 +57,17 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final ContactRepository contactRepository;
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private static final String LOGO_PATH = "static/logo.png"; //need to change this path. 
 
     public OrderServiceImpl(OrderRepository orderRepository, CartRepository cartRepository, ProductRepository productRepository
-    		, UserRepository userRepository) {
+    		, UserRepository userRepository, ContactRepository contactRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.contactRepository = contactRepository;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
             Product product = cart.getProduct();
             int quantity = cart.getQuantity();
 
-            double discountedPrice = Math.round(product.getFinalPrice() * 100.0) / 100.0;
+            double discountedPrice = product.getFinalPrice();
 
             // Check stock
             if (product.getStockQuantity() < quantity) {
@@ -156,8 +160,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-//    @Transactional
     public byte[] generateInvoicePdf(Long orderId) {
+    	
+    	ContactInfo contact = contactRepository.findAll().get(0);
+    	
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document document = new Document();
             PdfWriter.getInstance(document, out);
@@ -178,14 +184,14 @@ public class OrderServiceImpl implements OrderService {
             logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             headerTable.addCell(logoCell);
             
-            PdfPCell centreCell = new PdfPCell(new Phrase("Surya Pyro Park", 
+            PdfPCell centreCell = new PdfPCell(new Phrase(contact.getShopName(), 
             		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16)));
             centreCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             centreCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             centreCell.setBorder(Rectangle.NO_BORDER);
             headerTable.addCell(centreCell);
             
-            PdfPCell rightcell = new PdfPCell(new Phrase("Ph. 9876543210\n support@pattasu.com", 
+            PdfPCell rightcell = new PdfPCell(new Phrase("Ph." + contact.getPhoneNumber() +"\n"+contact.getMailId(), 
             		FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
             rightcell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             rightcell.setVerticalAlignment(Element.ALIGN_MIDDLE);

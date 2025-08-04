@@ -14,13 +14,13 @@ public class CartDTO {
         this.id = product.getId();
         this.product = new ProductDTO(product); // populate from entity
         this.quantity = quantity;
-        this.discount = product.getDiscount();
-
+        
         Double price = product.getPrice();
-        if (discount != null && discount > 0) {
-            double discountedPrice = price - (price * (discount / 100.0));
-            this.finalPrice = Math.round(discountedPrice * 100.0) / 100.0;
+        if (product.getDiscount() != null && product.getDiscount() > 0) {
+        	this.discount = product.getDiscount();
+            this.finalPrice = product.getFinalPrice();
         } else {
+        	this.discount = 0.0;
             this.finalPrice = price;
         }
     }
