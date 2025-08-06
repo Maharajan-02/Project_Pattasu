@@ -1,6 +1,7 @@
 package com.pattasu.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
 import org.slf4j.Logger;
@@ -59,26 +60,32 @@ public class UserServiceImpl implements UserService {
     				    .status(HttpStatus.BAD_REQUEST)
     				    .body("User already exists");
             }
+    		PendingUser pending;
 
-        	String encodedPassword = passwordEncoder.encode(request.getPassword());
-        	
-        	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-        		    .orElse(new PendingUser());
-
-            // Generate OTP
+    		// Generate OTP
         	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
         	String otp = String.format("%06d", otpValue);
-        	
-            // Store in DB
-            pending.setName(request.getName());
-            pending.setEmail(request.getEmail());
-            pending.setPhoneNumber(request.getPhoneNumber());
-            pending.setPassword(encodedPassword);
-            pending.setOtp(otp);
-            pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+    		
+    		Optional<PendingUser> pendingUser = pendingUserRepository.findByEmail(request.getEmail());
+    		
+    		if(pendingUser.isEmpty()) {
+    			pending = new PendingUser();
+    			
+        		pending.setName(request.getName());
+            	pending.setEmail(request.getEmail());
+            	pending.setPhoneNumber(request.getPhoneNumber());
+            	String encodedPassword = passwordEncoder.encode(request.getPassword());
+            	pending.setPassword(encodedPassword);
+                pending.setOtp(otp);
+                pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
-            pendingUserRepository.save(pending);
-
+                pendingUserRepository.save(pending);
+    		}else {
+    			pending = pendingUser.get();
+    			pending.setOtp(otp);
+    			pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+    		}
+            
             // Send OTP to user's email
             mailService.sendOtpEmail(request.getEmail(), otp);
 
