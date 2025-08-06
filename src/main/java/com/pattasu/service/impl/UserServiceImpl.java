@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pattasu.dto.LoginRequest;
 import com.pattasu.dto.LoginResponse;
 import com.pattasu.dto.OtpVerificationRequest;
+import com.pattasu.dto.UserDTO;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.entity.PendingUser;
 import com.pattasu.entity.User;
@@ -159,5 +160,14 @@ public class UserServiceImpl implements UserService {
         		.status(HttpStatus.OK)
         		.body(new LoginResponse(token, user.getRole()));
     }
+
+	@Override
+	public UserDTO getUser(User user) {
+		Optional<User> users = userRepository.findByEmail(user.getUsername());
+		if(users.isPresent()) {
+			return new UserDTO(users.get());
+		}
+		return new UserDTO();
+	}
 
 }
