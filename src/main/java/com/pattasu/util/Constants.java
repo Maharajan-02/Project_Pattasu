@@ -10,7 +10,7 @@ public class Constants {
 	public static final String upload = "/upload";
 	public static final String url = "url";
 	public static final String transformation = "transformation";
-	public static final String transformationValue = "[{\"height\":\"384\",\"width\":\"384\",\"crop\":\"force\"}]";
+	public static final String transformationValue = "{\"pre\":\"w-384,h-384,c-force\"}";
 	
 	public static void setUploadPath(String path) {
         UPLOAD_PATH = path;
