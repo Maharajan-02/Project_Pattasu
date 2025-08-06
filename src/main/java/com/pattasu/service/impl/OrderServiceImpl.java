@@ -137,7 +137,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
 //    @Transactional
     public List<GetOrderListDTO> getUserOrders(User user) {
-        List<Order> orderList = orderRepository.findByUser(user);
+        List<Order> orderList = orderRepository.findByUserOrderByIdDesc(user);
         
         List<GetOrderListDTO> orderListDto = new ArrayList<>();
         for(Order order : orderList) {
@@ -147,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
         	orderDto.setOrderDate(order.getOrderDate());
         	orderDto.setStatus(order.getOrderStatus());
         	List<OrderItemDTO> orderItemList = order.getItems().stream()
-        		    .map(OrderItemDTO::new)  // uses the conversion constructor
+        		    .map(OrderItemDTO::new) 
         		    .collect(Collectors.toList());
         	orderDto.setOrderItemDto(orderItemList);
         	orderDto.setNumberOfItems(orderItemList.size());
@@ -312,5 +312,5 @@ public class OrderServiceImpl implements OrderService {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<>());
 		}
 	}
-
+	
 }
