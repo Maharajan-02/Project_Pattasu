@@ -80,19 +80,25 @@ public class UserServiceImpl implements UserService {
                 pending.setOtp(otp);
                 pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
-                pendingUserRepository.save(pending);
+                
     		}else {
     			pending = pendingUser.get();
     			pending.setOtp(otp);
     			pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+    			pending.setName(request.getName() != null ? request.getName() : pending.getName());
+    			pending.setPassword(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : pending.getPassword());
+    			pending.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : pending.getPhoneNumber());
+    			
     		}
+    		
+    		pendingUserRepository.save(pending);
             
             // Send OTP to user's email
             mailService.sendOtpEmail(request.getEmail(), otp);
 
             return ResponseEntity
             		.status(HttpStatus.OK)
-            		.body("OTP sent to your email. Please verify to complete registration.");
+            		.body("OTP sent");
     	}catch(Exception e) {
     		log.info("error during inititate registration {} ", e.getMessage());
     		return ResponseEntity

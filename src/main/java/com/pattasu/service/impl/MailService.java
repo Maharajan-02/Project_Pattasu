@@ -5,29 +5,40 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.pattasu.entity.ContactInfo;
+import com.pattasu.repository.ContactRepository;
+
 @Service
 public class MailService{
 
     private final JavaMailSender mailSender;
+    private final ContactRepository contactRepository;
 
     @Autowired
-    public MailService(JavaMailSender mailSender) {
+    public MailService(JavaMailSender mailSender, ContactRepository contactRepository) {
         this.mailSender = mailSender;
+        this.contactRepository = contactRepository;
     }
 
     public void sendOtpEmail(String toEmail, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Your Pattasu OTP Code");
+        message.setSubject("Your Login Verification Code");
         message.setText(getMailBody(otp));
         mailSender.send(message);
     }
     
     private String getMailBody(String otp) {
+    	ContactInfo contact = contactRepository.findAll().get(0);
     	StringBuilder sb = new StringBuilder();
-    	sb.append("Welcome to Surya Pyro Park\n");
-    	sb.append("Your otp to login is " + otp); 
-    	sb.append("\n Your Otp will expire in 3 minutes");
+    	String name = contact.getShopName();
+    	sb.append("Dear Valued Customer,\r\n");
+		sb.append("Welcome to ").append(name).append("!\n");
+		sb.append("To complete your login, please use the following One-Time Password (OTP) : ").append(otp);
+    	sb.append("⏰ Important: This code will expire in 3 minutes for your security.\n");
+    	sb.append("If you didn't request this login, please ignore this email or contact our support team immediately.\n");
+    	sb.append("Thank you for choosing ").append(name).append("!\n"); 
+    	sb.append("\nBest regards,\r\nThe ").append(name).append(" Team");
     	return sb.toString();
     }
 }
