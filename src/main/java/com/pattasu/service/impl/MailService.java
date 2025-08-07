@@ -33,11 +33,11 @@ public class MailService{
     	StringBuilder sb = new StringBuilder();
     	String name = contact.getShopName();
     	sb.append("Dear Valued Customer,\r\n");
-		sb.append("Welcome to ").append(name).append("!\n");
-		sb.append("To complete your login, please use the following One-Time Password (OTP) : ").append(otp);
-    	sb.append("⏰ Important: This code will expire in 3 minutes for your security.\n");
-    	sb.append("If you didn't request this login, please ignore this email or contact our support team immediately.\n");
-    	sb.append("Thank you for choosing ").append(name).append("!\n"); 
+		sb.append("\nWelcome to ").append(name).append("!\n");
+		sb.append("\nTo complete your login, please use the following One-Time Password (OTP) : ").append(otp);
+    	sb.append("\n⏰ Important: This code will expire in 3 minutes for your security.\n");
+    	sb.append("\nIf you didn't request this login, please ignore this email or contact our support team immediately.\n");
+    	sb.append("\nThank you for choosing ").append(name).append("!\n"); 
     	sb.append("\nBest regards,\r\nThe ").append(name).append(" Team");
     	return sb.toString();
     }
