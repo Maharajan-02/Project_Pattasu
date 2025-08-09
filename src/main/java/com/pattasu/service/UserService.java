@@ -14,7 +14,7 @@ public interface UserService extends UserDetailsService{
 	
 	ResponseEntity<String> initiateRegistration(UserRegistrationRequest request);
 	ResponseEntity<String> verifyOtpAndRegister(OtpVerificationRequest request);
-    public ResponseEntity<LoginResponse> login(LoginRequest request);
+    public LoginResponse login(LoginRequest request);
     UserDTO getUser(User user);
 }
 

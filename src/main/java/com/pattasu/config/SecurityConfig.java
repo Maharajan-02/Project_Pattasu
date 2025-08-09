@@ -1,5 +1,7 @@
 package com.pattasu.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,71 +10,62 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
 
 import com.pattasu.security.JwtAuthenticationFilter;
+import com.pattasu.service.JwtService;
+import com.pattasu.service.UserService;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+	private final JwtService jwtService;
+    private final UserService userService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(JwtService jwtService, UserService userService) {
+        this.jwtService = jwtService;
+        this.userService = userService;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        String cookieName = "authToken"; // <- keep in one place
+
+        http
+            .csrf(csrf -> csrf.disable())   // using JWT, disable CSRF or use cookie-CSRF pattern
+            .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration cfg = new CorsConfiguration();
+                // FRONTEND ORIGINS THAT ARE ALLOWED
+                cfg.setAllowedOrigins(List.of(
+                    "http://localhost:3000",
+                    "https://your-frontend-domain.com"
+                ));
+                cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+                cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept"));
+                cfg.setAllowCredentials(true); // <-- required for cookies
+                return cfg;
+            }))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/", "/api/auth/**", "/api/products", "/api/product/**"
-                ).permitAll()
-                .requestMatchers("/api/cart/**", "/api/order/**", "/api/user/**").authenticated()
-                .anyRequest().permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers("/**").permitAll()
+                .anyRequest().authenticated()
             )
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+            .addFilterBefore(
+                new JwtAuthenticationFilter(jwtService, userService, cookieName),
+                UsernamePasswordAuthenticationFilter.class
+            )
+            .httpBasic(Customizer.withDefaults());
+
+        return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
     
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOriginPatterns("*") // Replace with your frontend's origin
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
-    }
-    
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // <-- enables CORS using the above config
-            .authorizeHttpRequests(auth -> auth
-//                .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            	.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .anyRequest().authenticated()
-            );
-
-        return http.build();
-    }
 }

@@ -152,7 +152,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<LoginResponse> login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
@@ -162,9 +162,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtService.generateToken(user);
-        return ResponseEntity
-        		.status(HttpStatus.OK)
-        		.body(new LoginResponse(token, user.getRole()));
+        return new LoginResponse(token, user.getRole());
     }
 
 	@Override

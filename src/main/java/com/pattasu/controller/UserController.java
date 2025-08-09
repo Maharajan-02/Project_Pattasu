@@ -2,6 +2,8 @@ package com.pattasu.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import com.pattasu.dto.UserDTO;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.entity.User;
 import com.pattasu.service.UserService;
+import com.pattasu.util.CookieGeneration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,7 +46,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
     	log.info("Login attempt: email={}, password={}", request.getEmail(), request.getPassword());
-        return userService.login(request);
+    	LoginResponse responseBody = userService.login(request); 
+    	ResponseCookie cookie = CookieGeneration.getCookie(responseBody.getToken());
+    	return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseBody);
     }
     
     @GetMapping("/user")
