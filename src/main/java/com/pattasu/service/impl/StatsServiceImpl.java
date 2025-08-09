@@ -34,9 +34,13 @@ public class StatsServiceImpl implements StatsService {
 	public ResponseEntity<StatsDTO> getQuickStats() {
 		try {
 			StatsDTO statsDto = new StatsDTO();
-			statsDto.setTotalOrders(orderRepository.count());
+			Long totalCount = orderRepository.count();
+			Long pendingCount = orderRepository.countByOrderStatusIn(pendingList);
+			statsDto.setTotalOrders(totalCount);
 			statsDto.setTotalProducts(productRepository.count());
-			statsDto.setPendingOrders(orderRepository.countByOrderStatusIn(pendingList));
+			
+			statsDto.setPendingOrders(pendingCount);
+			statsDto.setCompletedOrders(totalCount - pendingCount);
 			
 			return ResponseEntity.status(HttpStatus.OK).body(statsDto);
 		} catch (Exception e) {

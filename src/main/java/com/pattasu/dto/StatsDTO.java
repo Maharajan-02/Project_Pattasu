@@ -7,6 +7,8 @@ public class StatsDTO {
 	private Long totalOrders;
 	
 	private Long pendingOrders;
+	
+	private Long completedOrders;
 
 	public Long getTotalProducts() {
 		return totalProducts;
@@ -30,6 +32,14 @@ public class StatsDTO {
 
 	public void setPendingOrders(Long pendingOrders) {
 		this.pendingOrders = pendingOrders;
+	}
+
+	public Long getCompletedOrders() {
+		return completedOrders;
+	}
+
+	public void setCompletedOrders(Long completedOrders) {
+		this.completedOrders = completedOrders;
 	}
 	
 }
