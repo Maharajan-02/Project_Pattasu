@@ -7,6 +7,7 @@ public class OrderItemDTO {
 	    public OrderItemDTO(OrderItem orderItem) {
 			this.product =  new ProductDTO(orderItem.getProduct());
 			this.quantity = orderItem.getQuantity();
+			this.price = orderItem.getPrice();
 		}
 	    
 	    public OrderItemDTO() {}
@@ -15,7 +16,7 @@ public class OrderItemDTO {
 
 	    private int quantity;
 	    
-	    private Long price;
+	    private double price;
 
 	    public ProductDTO getProduct() { return product; }
 	    public void setProduct(ProductDTO product) { this.product = product; }
@@ -23,11 +24,11 @@ public class OrderItemDTO {
 	    public int getQuantity() { return quantity; }
 	    public void setQuantity(int quantity) { this.quantity = quantity; }
 
-		public Long getPrice() {
+		public double getPrice() {
 			return price;
 		}
 
-		public void setPrice(Long price) {
+		public void setPrice(double price) {
 			this.price = price;
 		}
 }

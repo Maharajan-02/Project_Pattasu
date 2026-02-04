@@ -1,9 +1,18 @@
 package com.pattasu.dto;
 
+import com.pattasu.entity.User;
+
 public class UserDTO {
 
-	private Long id;
-
+	public UserDTO() {}
+	
+	public UserDTO(User user) {
+		this.name = user.getName();
+		this.email = user.getUsername();
+		this.phoneNumber = user.getPhoneNumber();
+		this.address = user.getAddress();
+	}
+	
     private String name;
 
     private String email;
@@ -11,14 +20,6 @@ public class UserDTO {
     private String phoneNumber;
 
     private String address;
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 
 	public String getName() {
 		return name;

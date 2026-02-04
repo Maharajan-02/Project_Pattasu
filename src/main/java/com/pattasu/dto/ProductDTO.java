@@ -4,21 +4,21 @@ import com.pattasu.entity.Product;
 
 public class ProductDTO {
 	
-	public ProductDTO() {}
-
-	public ProductDTO(Product product) {
-		this.productId = product.getId();
-		this.name = product.getName();
-		this.description = product.getDescription();
-		this.price = product.getPrice();
-		this.imageUrl = product.getImageUrl();
-	}
 	private Long productId;
     private String name;
     private String description;
     private double price;
     private String imageUrl;
+    private boolean active;
+    private int stockQuantity;
+    private double discount;
     
+	public double getDiscount() {
+		return discount;
+	}
+	public void setDiscount(double discount) {
+		this.discount = discount;
+	}
 	public Long getProductId() {
 		return productId;
 	}
@@ -48,5 +48,34 @@ public class ProductDTO {
 	}
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public int getStockQuantity() {
+		return stockQuantity;
+	}
+
+	public void setStockQuantity(int stockQuantity) {
+		this.stockQuantity = stockQuantity;
+	}
+	
+	public ProductDTO() {}
+
+	public ProductDTO(Product product) {
+		this.productId = product.getId();
+		this.name = product.getName();
+		this.description = product.getDescription();
+		this.price = product.getPrice();
+		this.imageUrl = product.getImageUrl();
+		this.active = product.isActiveProduct();
+		this.stockQuantity = product.getStockQuantity();
+		this.discount = product.getDiscount() != null ? product.getDiscount() : 0.0;
 	}
 }

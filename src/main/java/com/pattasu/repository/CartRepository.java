@@ -13,8 +13,12 @@ import com.pattasu.entity.User;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
     List<Cart> findByUser(User user);
+    
+    List<Cart> findByUserId(Long userId);
 
     Optional<Cart> findByUserAndProductId(User user, Long productId);
 
     void deleteByUserAndProductId(User user, Long productId);
+
+	void deleteByProductId(Long id);
 }

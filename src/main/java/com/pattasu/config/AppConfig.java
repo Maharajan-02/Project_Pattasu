@@ -14,8 +14,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 @Configuration
 @EnableCaching
 public class AppConfig {
-
-    @Bean
+	
+	@Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -26,4 +26,5 @@ public class AppConfig {
     	cacheManager.setCaffeine(Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).maximumSize(1000));
     	return cacheManager;
     }
+    
 }

@@ -1,12 +1,26 @@
 package com.pattasu.entity;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.pattasu.dto.ProductUploadRequest;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "product")
+@JsonSerialize
 public class Product {
-
-    @Id
+	
+    public Product() {
+		super();
+	}
+    
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -15,6 +29,20 @@ public class Product {
     private double price;
     private String imageUrl;
     private int stockQuantity;
+    
+    @Column(name = "discount", nullable = true)
+    private Double discount;
+
+    @Column(nullable = false)
+    private boolean activeProduct = true;
+
+	public Product(ProductUploadRequest productDto) {
+		this.name = productDto.getName();
+		this.description = productDto.getDescription();
+		this.price = productDto.getPrice();
+		this.stockQuantity = productDto.getStockQuantity();
+		this.activeProduct = productDto.getActive();
+	}
 
     public Long getId() {
         return id;
@@ -60,4 +88,36 @@ public class Product {
 		this.stockQuantity = stockQuantity;
 	}
     
+	@Transient
+	public String getFullImageUrl() {
+	    if (this.imageUrl == null || this.imageUrl.isEmpty()) {
+	        return "/images/logo.png";
+	    }
+	    return this.imageUrl;
+	}
+
+	public boolean isActiveProduct() {
+		return activeProduct;
+	}
+
+	public void setActiveProduct(boolean activeProduct) {
+		this.activeProduct = activeProduct;
+	}
+
+	public Double getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(Double discount) {
+		this.discount = discount;
+	}
+	
+	public Double getFinalPrice() {
+	    if (discount != null && discount > 0) {
+	        return price - (price * discount / 100);
+	    }
+	    return price;
+	}
+
+	
 }

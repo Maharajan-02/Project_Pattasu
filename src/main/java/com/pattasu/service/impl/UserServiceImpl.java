@@ -1,8 +1,13 @@
 package com.pattasu.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pattasu.dto.LoginRequest;
 import com.pattasu.dto.LoginResponse;
 import com.pattasu.dto.OtpVerificationRequest;
+import com.pattasu.dto.UserDTO;
 import com.pattasu.dto.UserRegistrationRequest;
 import com.pattasu.entity.PendingUser;
 import com.pattasu.entity.User;
@@ -26,6 +32,8 @@ import com.pattasu.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
+	
+	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -45,63 +53,96 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public String initiateRegistration(UserRegistrationRequest request) {
+    public ResponseEntity<String> initiateRegistration(UserRegistrationRequest request) {
        
-    	if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return "User already exists with this email.";
-        }
+    	try {
+    		if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+    			return ResponseEntity
+    				    .status(HttpStatus.BAD_REQUEST)
+    				    .body("User already exists");
+            }
+    		PendingUser pending;
 
-    	String encodedPassword = passwordEncoder.encode(request.getPassword());
-    	
-    	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-    		    .orElse(new PendingUser());
+    		// Generate OTP
+        	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
+        	String otp = String.format("%06d", otpValue);
+    		
+    		Optional<PendingUser> pendingUser = pendingUserRepository.findByEmail(request.getEmail());
+    		
+    		if(pendingUser.isEmpty()) {
+    			pending = new PendingUser();
+    			
+        		pending.setName(request.getName());
+            	pending.setEmail(request.getEmail());
+            	pending.setPhoneNumber(request.getPhoneNumber());
+            	String encodedPassword = passwordEncoder.encode(request.getPassword());
+            	pending.setPassword(encodedPassword);
+                pending.setOtp(otp);
+                pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
 
-        // Generate OTP
-    	int otpValue = random.nextInt(1_000_000); // generates 0 to 999999
-    	String otp = String.format("%06d", otpValue);
-    	
-        // Store in DB
-        pending.setName(request.getName());
-        pending.setEmail(request.getEmail());
-        pending.setPhoneNumber(request.getPhoneNumber());
-        pending.setPassword(encodedPassword);
-        pending.setOtp(otp);
-        pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+                
+    		}else {
+    			pending = pendingUser.get();
+    			pending.setOtp(otp);
+    			pending.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+    			pending.setName(request.getName() != null ? request.getName() : pending.getName());
+    			pending.setPassword(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : pending.getPassword());
+    			pending.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : pending.getPhoneNumber());
+    			
+    		}
+    		
+    		pendingUserRepository.save(pending);
+            
+            // Send OTP to user's email
+            mailService.sendOtpEmail(request.getEmail(), otp);
 
-        pendingUserRepository.save(pending);
-
-        // Send OTP to user's email
-        mailService.sendOtpEmail(request.getEmail(), otp);
-
-        return "OTP sent to your email. Please verify to complete registration.";
+            return ResponseEntity
+            		.status(HttpStatus.OK)
+            		.body("OTP sent");
+    	}catch(Exception e) {
+    		log.info("error during inititate registration {} ", e.getMessage());
+    		return ResponseEntity
+            		.status(HttpStatus.BAD_REQUEST)
+            		.body(e.getMessage());
+    	}
     }
 
     @Override
     @Transactional
-    public String verifyOtpAndRegister(OtpVerificationRequest request) {
+    public ResponseEntity<String> verifyOtpAndRegister(OtpVerificationRequest request) {
 
-        PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new UserNotFoundException("No registration found for this email."));
+        try {
+        	PendingUser pending = pendingUserRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UserNotFoundException("No registration found for this email."));
 
-        if (pending.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            throw new OtpExpiredException("OTP expired.");
-        }
+                if (pending.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                    throw new OtpExpiredException("OTP expired.");
+                }
 
-        if (!pending.getOtp().equals(request.getOtp())) {
-            throw new OtpMismatchException("Invalid OTP.");
-        }
+                if (!pending.getOtp().equals(request.getOtp())) {
+                    throw new OtpMismatchException("Invalid OTP.");
+                }
 
-        User user = new User();
-        user.setName(pending.getName());
-        user.setEmail(pending.getEmail());
-        user.setPhoneNumber(pending.getPhoneNumber());
-        user.setPassword(pending.getPassword()); // 🔒 secure
-        user.setRole("user");
+                User user = new User();
+                user.setName(pending.getName());
+                user.setEmail(pending.getEmail());
+                user.setPhoneNumber(pending.getPhoneNumber());
+                user.setPassword(pending.getPassword()); // 🔒 secure
+                user.setRole("user");
 
-        userRepository.save(user);
-        pendingUserRepository.deleteByEmail(request.getEmail());
+                userRepository.save(user);
+                pendingUserRepository.deleteByEmail(request.getEmail());
 
-        return "User registered successfully!";
+                return ResponseEntity
+                		.status(HttpStatus.OK)
+                		.body("User registered successfully!");
+		} catch (Exception e) {
+			
+			log.info("error while otp verification {} ", e.getMessage());
+			return ResponseEntity
+            		.status(HttpStatus.BAD_REQUEST)
+            		.body(e.getMessage());
+		}
     }
     
     @Override
@@ -111,7 +152,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
@@ -121,7 +162,18 @@ public class UserServiceImpl implements UserService {
         }
 
         String token = jwtService.generateToken(user);
-        return new LoginResponse(token, user.getRole());
+        return ResponseEntity
+        		.status(HttpStatus.OK)
+        		.body(new LoginResponse(token, user.getRole()));
     }
+
+	@Override
+	public UserDTO getUser(User user) {
+		Optional<User> users = userRepository.findByEmail(user.getUsername());
+		if(users.isPresent()) {
+			return new UserDTO(users.get());
+		}
+		return new UserDTO();
+	}
 
 }

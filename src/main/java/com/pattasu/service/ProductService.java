@@ -1,13 +1,17 @@
 package com.pattasu.service;
 
-import com.pattasu.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+
+import com.pattasu.dto.ProductResponseDto;
+import com.pattasu.dto.ProductUploadRequest;
+import com.pattasu.entity.Product;
 
 public interface ProductService {
-    Product addProduct(Product product);
-    Product updateProduct(Long id, Product product);
-    void deleteProduct(Long id);
-    Page<Product> getAllProducts(Pageable pageable);
+	ResponseEntity<Product> addProduct(ProductUploadRequest product);
+	ResponseEntity<Product> updateProduct(Long id, ProductUploadRequest product);
+    Page<ProductResponseDto> getAllProducts(Pageable pageable, String search);
+    Page<ProductResponseDto> getActiveProducts(Pageable pageable, String search);
     Product getProductById(Long id);
 }
